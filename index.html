@@ -481,9 +481,7 @@ function startStatusPolling(code) {
         if (rows && rows.length > 0 && rows[0].status === 'unlocked') {
           clearInterval(_pollTimer);
           _pollTimer = null;
-          document.getElementById('unlockWaiting').classList.add('hidden');
-          document.getElementById('unlockDone').classList.remove('hidden');
-          showFullReading();
+          onUnlocked();
         }
       })
       .catch(function(){});
