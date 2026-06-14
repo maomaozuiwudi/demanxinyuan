@@ -149,13 +149,13 @@ var SB_URL = 'https://qvxqapgeeldfzedpcihd.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2eHFhcGdlZWxkZnplZHBjaWhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MzgxNDYsImV4cCI6MjA5NzAxNDE0Nn0.isNFaHKFTLZc6Im2obBKawczsooeImVkI4lfhmUfTfw';
 
 function sbFetch(path, opts) {
-  return fetch(SB_URL + path, Object.assign({
-    headers: {
-      'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + SB_KEY,
-      'Content-Type': 'application/json',
-    }
-  }, opts || {}));
+  opts = opts || {};
+  opts.headers = Object.assign({
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Content-Type': 'application/json',
+  }, opts.headers || {});
+  return fetch(SB_URL + path, opts);
 }
 
 var supabase = { connected: true };
