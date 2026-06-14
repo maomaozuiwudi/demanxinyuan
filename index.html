@@ -499,14 +499,23 @@ function startStatusPolling(code) {
 <!-- ═══════════ INPUT ═══════════ -->
 <div class="card" id="inputCard">
   <div class="form-group">
-    <label>姓名</label>
-    <input type="text" id="name" placeholder="输入姓名（可留空）">
+    <label>姓名 <span style="color:#c0392b;">*</span></label>
+    <input type="text" id="name" placeholder="请输入您的姓名">
   </div>
-  <div class="form-row">
-    <div class="form-group">
-      <label>公历生日</label>
-      <input type="date" id="birthDate" value="2000-01-01">
+  <div class="form-row" style="gap:6px;">
+    <div class="form-group" style="flex:1.2;">
+      <label>出生年份</label>
+      <select id="birthYear"></select>
     </div>
+    <div class="form-group" style="flex:1;">
+      <label>月份</label>
+      <select id="birthMonth"></select>
+    </div>
+    <div class="form-group" style="flex:1;">
+      <label>日期</label>
+      <select id="birthDay"></select>
+    </div>
+  </div>
     <div class="form-group">
       <label>出生时辰</label>
       <select id="birthHour">
@@ -1138,14 +1147,14 @@ function getPersonality(dmStem, strength) {
 // ═══════════════ MAIN ═══════════════
 
 function doReading() {
-  const name = document.getElementById('name').value || '匿名';
-  const dateVal = document.getElementById('birthDate').value;
+  const name = document.getElementById('name').value.trim();
+  if (!name) { alert('请填写姓名'); document.getElementById('name').focus(); return; }
+  const y = parseInt(document.getElementById('birthYear').value);
+  const m = parseInt(document.getElementById('birthMonth').value);
+  const d = parseInt(document.getElementById('birthDay').value);
   let hourVal = parseInt(document.getElementById('birthHour').value);
   const gender = document.getElementById('gender').value;
 
-  if (!dateVal) { alert('请选择出生日期'); return; }
-
-  const [y, m, d] = dateVal.split('-').map(Number);
   if (hourVal < 0) hourVal = 6; // default to 午时
 
   // ── Calculate pillars ──
@@ -1623,6 +1632,60 @@ function getBaziGod(dmStem, otherStem) {
   ];
   return godMap[diff];
 }
+
+// ═══════════════ 初始化年月日下拉框 ═══════════════
+function initDateSelects() {
+  var now = new Date();
+  var curYear = now.getFullYear();
+
+  // 年份
+  var ySel = document.getElementById('birthYear');
+  for (var y = 1900; y <= curYear; y++) {
+    var opt = document.createElement('option');
+    opt.value = y; opt.textContent = y + '年';
+    if (y === 2000) opt.selected = true;
+    ySel.appendChild(opt);
+  }
+
+  // 月份
+  var mSel = document.getElementById('birthMonth');
+  for (var m = 1; m <= 12; m++) {
+    var opt = document.createElement('option');
+    opt.value = m; opt.textContent = m + '月';
+    if (m === 1) opt.selected = true;
+    mSel.appendChild(opt);
+  }
+
+  // 日期（首次）
+  updateDays();
+
+  // 监听年月变化
+  ySel.addEventListener('change', updateDays);
+  mSel.addEventListener('change', updateDays);
+}
+
+function updateDays() {
+  var y = parseInt(document.getElementById('birthYear').value);
+  var m = parseInt(document.getElementById('birthMonth').value);
+  var dSel = document.getElementById('birthDay');
+  var selected = parseInt(dSel.value) || 1;
+
+  // 计算当月天数
+  var daysInMonth = new Date(y, m, 0).getDate();
+
+  dSel.innerHTML = '';
+  for (var d = 1; d <= daysInMonth; d++) {
+    var opt = document.createElement('option');
+    opt.value = d; opt.textContent = d + '日';
+    if (d === Math.min(selected, daysInMonth)) opt.selected = true;
+    dSel.appendChild(opt);
+  }
+}
+
+// 页面加载后自动初始化
+document.addEventListener('DOMContentLoaded', initDateSelects);
+// 如果页面已经加载完了，直接执行
+if (document.readyState !== 'loading') initDateSelects();
 </script>
 
 </body>
