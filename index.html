@@ -660,6 +660,13 @@ function startStatusPolling(code) {
     <div class="fortune-msg" id="fortuneMsg"></div>
   </div>
 
+  <!-- AI 智能评析 -->
+  <div class="card result-card" id="aiCard" style="display:none;">
+    <div class="section-title">🤖 AI 智能详批</div>
+    <div class="fortune-msg" id="aiReading"></div>
+    <div style="text-align:center;color:var(--text-dim);font-size:0.75em;margin-top:8px;" id="aiStatus"></div>
+  </div>
+
   <div style="max-width:540px;margin:0 auto;">
     <button class="btn" onclick="doReset()">↩ 重新排盘</button>
     <button class="btn btn-print" onclick="window.print()">🖨 打印命单</button>
@@ -1279,6 +1286,13 @@ function doReading() {
   _currentSessionCode = sessionCode;
   _currentName = name;
   _currentTeaser = teaserData;
+  // Store bazi data for AI analysis
+  _baziData = {
+    stems: allStems, branches: allBranches,
+    dmStem: dmStem, dmElem: dmElem,
+    strength: strength, favs: favs,
+    lucks: lucks, age: currentAge, gender: gender
+  };
 
   // Show paywall with "我已付款" button (default)
   document.getElementById('paywallCard').style.display = '';
@@ -1308,6 +1322,11 @@ var SERVERCHAN_SENDKEY = 'SCT364331TK5ray06wD2wLfPws4ZL3dUzk';
 var _currentSessionCode = '';
 var _currentName = '';
 var _currentTeaser = {};
+// 八字数据（供AI分析使用）
+var _baziData = {
+  stems: [], branches: [], dmStem: 0, dmElem: 0,
+  strength: null, favs: null, lucks: [], age: 0, gender: 'male'
+};
 
 // 获取管理端解锁链接
 function getAdminUnlockUrl(code) {
@@ -1404,6 +1423,8 @@ function onUnlocked() {
     document.getElementById('paywallCard').style.display = 'none';
     document.getElementById('fullResults').classList.remove('hidden');
     document.getElementById('fullResults').scrollIntoView({ behavior: 'smooth' });
+    // 开始AI智能分析
+    setTimeout(generateAIAnalysis, 500);
   }, 800);
 }
 
@@ -1453,6 +1474,113 @@ document.addEventListener('keydown', e => {
     doReading();
   }
 });
+
+// ═══════════════ AI 智能分析（调 DeepSeek API）═══════════════
+var DEEPSEEK_KEY = 'sk-eafa3873df78451c876422cb4a061a00';
+
+function generateAIAnalysis() {
+  var data = _baziData;
+  if (!data || !data.stems || data.stems.length === 0) return;
+
+  // 显示加载状态
+  document.getElementById('aiStatus').textContent = '🧠 AI正在分析命盘...';
+  document.getElementById('aiCard').style.display = '';
+
+  // 构建prompt
+  var stems = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var branches = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var elemNames = ['木','火','土','金','水'];
+  var stemElems = [0,0,1,1,2,2,3,3,4,4];
+  var brElems  = [4,2,0,0,2,1,1,2,3,3,2,4];
+  var gods = ['比肩','劫财','食神','伤官','正财','偏财','正官','七杀','正印','偏印'];
+  var animals = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+
+  // 四柱
+  var pillars = '';
+  var pillarKeys = ['年','月','日','时'];
+  for (var i = 0; i < 4; i++) {
+    var s = data.stems[i], b = data.branches[i];
+    var god = getBaziGod(data.dmStem, s);
+    var nayin = ['海中金','炉中火','大林木','路旁土','剑锋金','山头火','涧下水','城头土','白蜡金','杨柳木','泉中水','屋上土','霹雳火','松柏木','长流水','砂石金','山下火','平地木','壁上土','金箔金','覆灯火','天河水','大驿土','钗钏金','桑柘木','大溪水','沙中土','天上火','石榴木','大海水'];
+    var nayinName = nayin[(s * 12 + b) % 60] || '未知';
+    pillars += pillarKeys[i] + '柱: ' + stems[s] + branches[b]
+      + ' (' + animals[b] + ') · ' + god + ' · 纳音' + nayinName + '\n';
+  }
+
+  // 五行统计
+  var elemCounts = [0,0,0,0,0];
+  data.stems.forEach(function(s){ elemCounts[stemElems[s]]++; });
+  data.branches.forEach(function(b){ elemCounts[brElems[b]]++; });
+
+  var prompt = '你是一位精通中国传统八字命理的资深命理师。请根据以下八字信息，为这位求测者写一份详细的命理分析报告。\n\n'
+    + '【基本信息】\n'
+    + '姓名: ' + (_currentName || '匿名') + '\n'
+    + '性别: ' + (data.gender === 'male' ? '男' : '女') + '\n\n'
+    + '【八字排盘】\n' + pillars + '\n'
+    + '【五行分布】\n'
+    + '木:' + elemCounts[0] + ' 火:' + elemCounts[1] + ' 土:' + elemCounts[2] + ' 金:' + elemCounts[3] + ' 水:' + elemCounts[4] + '\n'
+    + '【日主】' + stems[data.dmStem] + elemNames[data.dmElem] + '\n'
+    + '【旺衰】' + (data.strength ? data.strength.label : '中和') + '\n'
+    + '【喜用神】' + (data.favs ? data.favs.favorable.join('、') : '') + '\n'
+    + '【忌神】' + (data.favs ? data.favs.unfavorable.join('、') : '') + '\n\n'
+    + '请从以下几个方面撰写详细的命理分析（每项至少100-150字）：\n'
+    + '1. 【八字格局总论】整体分析命局的格局高低、五行平衡情况\n'
+    + '2. 【性格深度解析】结合日主和十神，分析性格特质、优势和潜在弱点\n'
+    + '3. 【事业方向】适合的行业类型、职场性格、发展建议\n'
+    + '4. 【财运走势】财富来源、理财风格、大运对财运的影响\n'
+    + '5. 【感情婚姻】婚姻观、配偶特征、感情发展趋势\n'
+    + '6. 【当前大运】当前大运对人生的影响，未来十年机遇与挑战\n'
+    + '7. 【2026丙午年具体运势】事业、财运、感情、健康四个方面的具体建议\n\n'
+    + '要求：\n'
+    + '- 语言要专业且有温度，避免过于迷信的表述\n'
+    + '- 每条分析要有具体事实依据（从八字推导），不要泛泛而谈\n'
+    + '- 总计800-1200字\n'
+    + '- 使用中文，段落分明';
+
+  // 调DeepSeek API
+  fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + DEEPSEEK_KEY
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {role: 'system', content: '你是一位资深中国传统八字命理师，精通子平术。你用专业且平实的语言分析八字命盘，给出有价值的命理建议。'},
+        {role: 'user', content: prompt}
+      ],
+      max_tokens: 2048,
+      temperature: 0.7
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(result){
+    if (result && result.choices && result.choices[0]) {
+      var text = result.choices[0].message.content;
+      // 格式化输出：段落之间加空行
+      text = text.replace(/\n\n/g, '</p><p style="margin-bottom:14px;">');
+      text = '<p style="margin-bottom:14px;">' + text + '</p>';
+      document.getElementById('aiReading').innerHTML = text;
+      document.getElementById('aiStatus').textContent = '✅ AI分析完成';
+    } else {
+      document.getElementById('aiStatus').textContent = '⚠ AI分析暂不可用，请重试';
+    }
+  })
+  .catch(function(err){
+    document.getElementById('aiStatus').textContent = '⚠ AI分析加载失败，请刷新重试';
+    console.warn('AI分析失败:', err);
+  });
+}
+
+// 辅助：获取十神
+function getBaziGod(dmStem, otherStem) {
+  var diff = (otherStem - dmStem + 10) % 10;
+  var godMap = [
+    '比肩','劫财','食神','伤官','正财','偏财','正官','七杀','正印','偏印'
+  ];
+  return godMap[diff];
+}
 </script>
 
 </body>
