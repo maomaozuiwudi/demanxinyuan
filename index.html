@@ -561,15 +561,25 @@ function startStatusPolling(code) {
 
     <!-- 收款码 -->
     <div class="section-title" style="display:inline-block;margin-bottom:8px;">微信扫码支付</div>
-    <div class="qr-wrapper" id="qrWrapper" style="margin:0 auto;">
+    <div class="qr-wrapper" id="qrWrapper" style="margin:0 auto;cursor:pointer;" onclick="previewQR()">
       <img id="qrImage" src="pay_qr.jpg" alt="收款码" class="qr-img">
     </div>
     <div style="color:var(--text-dim);font-size:0.8em;margin:8px 0;">
-      命理分析 · 随缘打赏 · ¥9.90
+      命理分析 · 随缘随喜
+    </div>
+    <div style="color:var(--text-dim);font-size:0.7em;margin:4px 0;">
+      👆 点击收款码放大，在微信里长按即可识别
     </div>
     <div style="color:var(--text-dim);font-size:0.75em;margin:8px 0;border:1px solid var(--border);border-radius:6px;padding:8px;background:rgba(255,255,255,0.03);">
       ⚠️ 扫码付款后，点击下方「我已付款」按钮<br>
       摊主确认后自动解锁完整命盘
+    </div>
+
+    <!-- 收款码全屏预览遮罩 -->
+    <div id="qrPreviewOverlay" onclick="closePreview()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;flex-direction:column;">
+      <img id="qrPreviewImg" src="pay_qr.jpg" style="max-width:85vw;max-height:70vh;border:3px solid var(--gold);border-radius:8px;">
+      <div style="color:var(--gold);font-size:1em;margin-top:18px;letter-spacing:2px;">长按识别图中二维码 → 付款</div>
+      <div style="color:var(--text-dim);font-size:0.75em;margin-top:6px;">点击任意位置关闭</div>
     </div>
 
     <!-- ══════ 我已付款 + 远程解锁 ══════ -->
@@ -1708,6 +1718,15 @@ function updateDays() {
 document.addEventListener('DOMContentLoaded', initDateSelects);
 // 如果页面已经加载完了，直接执行
 if (document.readyState !== 'loading') initDateSelects();
+
+// 收款码点击放大（微信看图模式支持长按识别二维码）
+function previewQR() {
+  var overlay = document.getElementById('qrPreviewOverlay');
+  overlay.style.display = 'flex';
+}
+function closePreview() {
+  document.getElementById('qrPreviewOverlay').style.display = 'none';
+}
 </script>
 
 </body>
