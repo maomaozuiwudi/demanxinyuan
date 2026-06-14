@@ -989,16 +989,38 @@ function getHourPillar(dayStem, hourBranch) {
   return { stem: (dayStem * 2 + hourBranch) % 10, branch: hourBranch };
 }
 
-function getLuckPillars(yearStem, monthStem, monthBranch, gender) {
+function calcStartAge(year, month, day, forward) {
+  // 计算起运岁数：
+  // 阳男阴女(顺排)：出生日到下一个节气，÷3
+  // 阴男阳女(逆排)：上一个节气到出生日，÷3
+  // 3天=1岁
+  const birthTs = Date.UTC(year, month - 1, day);
+  let minDays = Infinity;
+  // 查前后共3年的节气，确保跨年边界正确
+  for (let yShift = -1; yShift <= 1; yShift++) {
+    for (const t of SOLAR_TERMS) {
+      const termTs = Date.UTC(year + yShift, t.m - 1, t.d);
+      const diffMs = forward ? (termTs - birthTs) : (birthTs - termTs);
+      if (diffMs <= 0) continue;
+      const days = Math.round(diffMs / 86400000);
+      if (days < minDays) minDays = days;
+    }
+  }
+  if (!isFinite(minDays) || minDays < 1) return 1;
+  return Math.max(1, Math.floor(minDays / 3));
+}
+
+function getLuckPillars(yearStem, monthStem, monthBranch, gender, birthYear, birthMonth, birthDay) {
   const yangYY = STEM_YY[yearStem] === 1;
   const isMale = gender === 'male';
   const forward = (yangYY && isMale) || (!yangYY && !isMale);
+  const startAge = calcStartAge(birthYear, birthMonth, birthDay, forward);
   const pillars = [];
   for (let i = 0; i < 8; i++) {
     const step = forward ? i + 1 : -(i + 1);
     const brIdx = (((monthBranch + step) % 12) + 12) % 12;
     const stIdx = (((monthStem + step) % 10) + 10) % 10;
-    pillars.push({ age: i * 10 + 1, stem: stIdx, branch: brIdx });
+    pillars.push({ age: startAge + i * 10, stem: stIdx, branch: brIdx });
   }
   return pillars;
 }
@@ -1243,7 +1265,7 @@ function doReading() {
   document.getElementById('elemsMsg').textContent = elemMsgs.join('；');
 
   // ── Luck pillars ──
-  const lucks = getLuckPillars(yp.stem, mp.stem, mp.branch, gender);
+  const lucks = getLuckPillars(yp.stem, mp.stem, mp.branch, gender, y, m, d);
   // Precompute stem/branch names
   lucks.forEach(l => {
     l.stemName = STEMS[l.stem];
