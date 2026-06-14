@@ -1423,7 +1423,7 @@ function onUnlocked() {
     document.getElementById('paywallCard').style.display = 'none';
     document.getElementById('fullResults').classList.remove('hidden');
     document.getElementById('fullResults').scrollIntoView({ behavior: 'smooth' });
-    // 开始AI智能分析
+    // 延迟一点让命理简评先渲染，再开始详批
     setTimeout(generateAIAnalysis, 500);
   }, 800);
 }
@@ -1483,16 +1483,41 @@ function generateAIAnalysis() {
   if (!data || !data.stems || data.stems.length === 0) return;
 
   // 显示加载状态
-  document.getElementById('aiStatus').textContent = '🧠 AI正在分析命盘...';
+  document.getElementById('aiStatus').textContent = '⏳ 正在生成详批...';
   document.getElementById('aiCard').style.display = '';
 
-  // 构建prompt
+  // 先查 Supabase 有没有缓存的分析结果
+  var code = _currentSessionCode;
+  if (!code) { callDeepSeek(data); return; }
+
+  sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      if (rows && rows.length > 0 && rows[0].teaser && rows[0].teaser.ai) {
+        // 📖 有缓存！直接显示，不调 API
+        var cached = rows[0].teaser.ai;
+        cached = cached.replace(/\n\n/g, '</p><p style="margin-bottom:14px;">');
+        cached = '<p style="margin-bottom:14px;">' + cached + '</p>';
+        document.getElementById('aiReading').innerHTML = cached;
+        document.getElementById('aiStatus').textContent = '✅ 详批完成';
+      } else {
+        // 没有缓存，调 DeepSeek
+        callDeepSeek(data, code);
+      }
+    })
+    .catch(function(){
+      // 查询失败也调 DeepSeek
+      callDeepSeek(data, code);
+    });
+}
+
+// 调 DeepSeek 生成，temperature=0 保证同一输入同一输出
+function callDeepSeek(data, sessionCode) {
   var stems = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
   var branches = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   var elemNames = ['木','火','土','金','水'];
   var stemElems = [0,0,1,1,2,2,3,3,4,4];
   var brElems  = [4,2,0,0,2,1,1,2,3,3,2,4];
-  var gods = ['比肩','劫财','食神','伤官','正财','偏财','正官','七杀','正印','偏印'];
   var animals = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
 
   // 四柱
@@ -1537,7 +1562,6 @@ function generateAIAnalysis() {
     + '- 总计800-1200字\n'
     + '- 使用中文，段落分明';
 
-  // 调DeepSeek API
   fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: {
@@ -1551,25 +1575,43 @@ function generateAIAnalysis() {
         {role: 'user', content: prompt}
       ],
       max_tokens: 2048,
-      temperature: 0.7
+      temperature: 0
     })
   })
   .then(function(r){ return r.json(); })
   .then(function(result){
     if (result && result.choices && result.choices[0]) {
       var text = result.choices[0].message.content;
-      // 格式化输出：段落之间加空行
+      // 💡 存到 Supabase teaser.ai 缓存（先读出现有的teaser，合并后再写）
+      if (sessionCode) {
+        sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode))
+          .then(function(r){ return r.json(); })
+          .then(function(rows){
+            if (rows && rows.length > 0) {
+              // 合并现有 teaser 数据
+              var existing = rows[0].teaser || {};
+              existing.ai = text;
+              // 写回
+              sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode), {
+                method: 'PATCH',
+                body: JSON.stringify({teaser: existing}),
+                headers: {'Prefer': 'return=minimal'}
+              }).catch(function(){});
+            }
+          }).catch(function(){});
+      }
+      // 格式化显示
       text = text.replace(/\n\n/g, '</p><p style="margin-bottom:14px;">');
       text = '<p style="margin-bottom:14px;">' + text + '</p>';
       document.getElementById('aiReading').innerHTML = text;
-      document.getElementById('aiStatus').textContent = '✅ AI分析完成';
+      document.getElementById('aiStatus').textContent = '✅ 详批完成';
     } else {
-      document.getElementById('aiStatus').textContent = '⚠ AI分析暂不可用，请重试';
+      document.getElementById('aiStatus').textContent = '⚠ 详批暂不可用，请重试';
     }
   })
   .catch(function(err){
-    document.getElementById('aiStatus').textContent = '⚠ AI分析加载失败，请刷新重试';
-    console.warn('AI分析失败:', err);
+    document.getElementById('aiStatus').textContent = '⚠ 详批加载失败，请刷新重试';
+    console.warn('详批失败:', err);
   });
 }
 
