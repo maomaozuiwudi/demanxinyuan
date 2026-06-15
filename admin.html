@@ -232,7 +232,8 @@ document.addEventListener('click', function(){ beepOk = true; }, {once:true});
 
 // ── 加载订单列表 ──
 function loadSessions() {
-  sbFetch('/rest/v1/fortune_sessions?order=created_at.desc&limit=20')
+  // 拉100条确保 paid 待处理订单不会被挤出去
+  sbFetch('/rest/v1/fortune_sessions?order=created_at.desc&limit=100')
     .then(function(r){ return r.json(); })
     .then(function(rows){
       renderSessions(rows);
