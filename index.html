@@ -1448,6 +1448,11 @@ async function notifyPaid() {
     + '点此解锁命盘（复制链接到浏览器打开）：\n'
     + adminUrl;
 
+  // 先把状态改成 paid（标记已付款，auto_unlock脚本只解锁 paid）
+  try {
+    sbUpdate('fortune_sessions', 'session_code', _currentSessionCode, {status: 'paid'});
+  } catch(_) {}
+
   // 后台发通知（no-cors模式绕过浏览器CORS限制）
   var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
   fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
