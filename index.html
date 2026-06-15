@@ -614,17 +614,18 @@ function startStatusPolling(code) {
         <div style="color:var(--green);font-size:1.2em;">✅ 支付已确认，命盘已解锁</div>
       </div>
 
-      <!-- ══════ 姓名+出生年月 双重验证解锁（付款后显示） ══════ -->
+      <!-- ══════ 姓名+出生年月日 三重验证解锁（付款后显示） ══════ -->
       <div class="hidden" id="nameVerifySection" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
         <div style="color:var(--green);font-size:1.1em;margin-bottom:8px;">✅ 支付已确认</div>
         <div style="color:var(--text);font-size:0.85em;margin-bottom:12px;">
-          输入排盘时填写的姓名和出生年月，验证后查看完整命盘
+          输入排盘时填写的姓名和出生年月日，验证后查看完整命盘
         </div>
         <div class="paywall-unlock" style="max-width:100%;flex-direction:column;gap:6px;">
           <input type="text" id="verifyNameInput" placeholder="输入姓名" maxlength="10" style="letter-spacing:0.1em;text-align:center;padding:8px 12px;" onkeydown="if(event.key==='Enter')document.getElementById('verifyBirthYear').focus()">
-          <div class="form-row" style="gap:6px;">
-            <select id="verifyBirthYear" style="flex:1.2;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:0.85em;padding:8px 6px;font-family:inherit;"></select>
-            <select id="verifyBirthMonth" style="flex:1;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:0.85em;padding:8px 6px;font-family:inherit;" onchange=""></select>
+          <div class="form-row" style="gap:4px;">
+            <select id="verifyBirthYear" style="flex:1.4;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:0.78em;padding:8px 4px;font-family:inherit;"></select>
+            <select id="verifyBirthMonth" style="flex:1;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:0.78em;padding:8px 4px;font-family:inherit;"></select>
+            <select id="verifyBirthDay" style="flex:1;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:0.78em;padding:8px 4px;font-family:inherit;"></select>
           </div>
           <button class="btn-unlock" onclick="verifyAccess()" style="width:100%;padding:10px;font-size:0.95em;">🔓 验证并查看命盘</button>
         </div>
@@ -1347,7 +1348,7 @@ function doReading() {
   // Store global data for Server酱 notification
   _currentSessionCode = sessionCode;
   _currentName = name;
-  _currentBirth = {year: y, month: m};
+  _currentBirth = {year: y, month: m, day: d};
   _currentTeaser = teaserData;
   // Store bazi data for AI analysis
   _baziData = {
@@ -1377,7 +1378,7 @@ function doReading() {
     localStorage.setItem('fortune_session', JSON.stringify({
       name: name,
       sessionCode: sessionCode,
-      birth: {year: y, month: m},
+      birth: {year: y, month: m, day: d},
       teaserData: teaserData,
       baziData: _baziData,
       status: 'pending'
@@ -1501,19 +1502,27 @@ function onUnlocked() {
   document.getElementById('verifyError').textContent = '';
   // 填充出生年月下拉框
   populateVerifyBirthSelects();
-  // 默认选中排盘时的年月
+  // 默认选中排盘时的年月日
   if (_currentBirth.year) {
     document.getElementById('verifyBirthYear').value = _currentBirth.year;
     document.getElementById('verifyBirthMonth').value = _currentBirth.month;
+    // 日下拉框需要等月份变化事件触发后再设值
+    var mEvt = document.getElementById('verifyBirthMonth');
+    if (mEvt) { mEvt.dispatchEvent(new Event('change')); }
+    // 延迟一小下等日更新后再选值
+    setTimeout(function(){
+      if (_currentBirth.day) document.getElementById('verifyBirthDay').value = _currentBirth.day;
+    }, 10);
   }
   document.getElementById('verifyNameInput').focus();
 }
 
-// 姓名 + 出生年月 双重验证解锁
+// 姓名 + 出生年月日 三重验证解锁
 function verifyAccess() {
   var nameInput = document.getElementById('verifyNameInput').value.trim();
   var birthYear = parseInt(document.getElementById('verifyBirthYear').value);
   var birthMonth = parseInt(document.getElementById('verifyBirthMonth').value);
+  var birthDay = parseInt(document.getElementById('verifyBirthDay').value);
   var errEl = document.getElementById('verifyError');
 
   // 校验姓名
@@ -1529,17 +1538,17 @@ function verifyAccess() {
     return;
   }
 
-  // 校验出生年月
-  if (!birthYear || !birthMonth) {
-    errEl.textContent = '⚠ 请选择出生年月';
+  // 校验出生年月日
+  if (!birthYear || !birthMonth || !birthDay) {
+    errEl.textContent = '⚠ 请选择完整的出生年月日';
     return;
   }
-  if (birthYear !== _currentBirth.year || birthMonth !== _currentBirth.month) {
-    errEl.textContent = '⚠ 出生年月不匹配，请重新选择';
+  if (birthYear !== _currentBirth.year || birthMonth !== _currentBirth.month || birthDay !== _currentBirth.day) {
+    errEl.textContent = '⚠ 出生年月日不匹配，请重新选择';
     return;
   }
 
-  // 双重校验通过！
+  // 三重校验通过！
   errEl.textContent = '';
   document.getElementById('nameVerifySection').classList.add('hidden');
   document.getElementById('paywallCard').style.display = 'none';
@@ -1796,6 +1805,7 @@ function getBaziGod(dmStem, otherStem) {
 function populateVerifyBirthSelects() {
   var ySel = document.getElementById('verifyBirthYear');
   var mSel = document.getElementById('verifyBirthMonth');
+  var dSel = document.getElementById('verifyBirthDay');
   // 只填充一次
   if (ySel.options.length > 0) return;
   var curYear = new Date().getFullYear();
@@ -1809,6 +1819,23 @@ function populateVerifyBirthSelects() {
     opt.value = m; opt.textContent = m + '月';
     mSel.appendChild(opt);
   }
+  // 日：初始31天，月份变化时更新
+  function updateVerifyDays() {
+    var y = parseInt(ySel.value) || 2000;
+    var m = parseInt(mSel.value) || 1;
+    var days = new Date(y, m, 0).getDate();
+    var oldVal = parseInt(dSel.value) || 1;
+    dSel.innerHTML = '';
+    for (var d = 1; d <= days; d++) {
+      var opt = document.createElement('option');
+      opt.value = d; opt.textContent = d + '日';
+      if (d === Math.min(oldVal, days)) opt.selected = true;
+      dSel.appendChild(opt);
+    }
+  }
+  ySel.addEventListener('change', updateVerifyDays);
+  mSel.addEventListener('change', updateVerifyDays);
+  updateVerifyDays();
 }
 
 // ═══════════════ 初始化年月日下拉框 ═══════════════
