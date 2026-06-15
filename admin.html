@@ -257,10 +257,11 @@ function renderSessions(sessions) {
 
   var frag = document.createDocumentFragment();
   var pending = sessions.filter(function(s){ return s.status === 'pending'; });
+  var paid = sessions.filter(function(s){ return s.status === 'paid'; });
   var unlocked = sessions.filter(function(s){ return s.status === 'unlocked'; });
 
   // 新订单提示音
-  pending.forEach(function(s){
+  pending.concat(paid).forEach(function(s){
     if (!knownSessions[s.session_code] && soundEnabled) playBeep();
     knownSessions[s.session_code] = s.status;
   });
@@ -270,13 +271,31 @@ function renderSessions(sessions) {
     var birth = s.birth_json || {};
     var teaser = s.teaser || {};
     var birthStr = birth.year ? birth.year + '-' + birth.month + '-' + birth.day : '?';
-    if (s.code && !s.session_code) s.session_code = s.code; // 兼容旧数据
+    if (s.code && !s.session_code) s.session_code = s.code;
     card.innerHTML =
       '<div class="session-info">' +
         '<div class="session-code">' + esc(s.session_code) + '</div>' +
         '<div class="session-detail">' + esc(s.name||'匿名') + ' · ' + esc(birthStr) + ' · ' + esc(teaser.dm||'?') + '</div>' +
         '<div class="session-detail">' + esc(teaser.pattern||'') + ' · 喜' + esc(teaser.fav||'?') + '</div>' +
         '<div class="session-time">' + getElapsed(s.created_at) + '</div>' +
+      '</div>' +
+      '<div class="session-action"><button class="btn-unlock" onclick="doUnlock(\'' + esc(s.session_code) + '\', this)">🔓 解锁</button></div>';
+    frag.appendChild(card);
+  });
+
+  // 已付款待解锁（paid）
+  paid.forEach(function(s){
+    var card = document.createElement('div'); card.className = 'session-card'; card.id = 'card_' + s.session_code;
+    card.style.borderColor = '#c9a040';
+    var birth = s.birth_json || {};
+    var teaser = s.teaser || {};
+    var birthStr = birth.year ? birth.year + '-' + birth.month + '-' + birth.day : '?';
+    if (s.code && !s.session_code) s.session_code = s.code;
+    card.innerHTML =
+      '<div class="session-info">' +
+        '<div class="session-code" style="color:#e0b040">' + esc(s.session_code) + ' 💰</div>' +
+        '<div class="session-detail">' + esc(s.name||'匿名') + ' · ' + esc(birthStr) + ' · ' + esc(teaser.dm||'?') + '</div>' +
+        '<div class="session-detail" style="color:#e0b040;font-size:0.7em">已付款 · 待解锁</div>' +
       '</div>' +
       '<div class="session-action"><button class="btn-unlock" onclick="doUnlock(\'' + esc(s.session_code) + '\', this)">🔓 解锁</button></div>';
     frag.appendChild(card);
