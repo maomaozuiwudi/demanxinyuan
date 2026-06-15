@@ -576,6 +576,9 @@ function startStatusPolling(code) {
     <div style="color:var(--text-dim);font-size:0.7em;margin:4px 0;">
       👆 点击收款码放大 → 长按识别图中二维码
     </div>
+    <div style="color:#c0392b;font-size:0.75em;margin:8px 0 0;border:1px dashed rgba(192,57,43,0.3);border-radius:4px;padding:6px 10px;background:rgba(192,57,43,0.05);">
+      ⚠️ 每日凌晨 1:00 — 上午 9:00 摊主休息，请勿付款
+    </div>
     <div style="color:var(--text-dim);font-size:0.75em;margin:8px 0;border:1px solid var(--border);border-radius:6px;padding:8px;background:rgba(255,255,255,0.03);">
       💡 退出保存图片去付款？没关系<br>
       回来输入同样姓名即可继续解锁
@@ -611,17 +614,21 @@ function startStatusPolling(code) {
         <div style="color:var(--green);font-size:1.2em;">✅ 支付已确认，命盘已解锁</div>
       </div>
 
-      <!-- ══════ 姓名验证解锁（付款后显示） ══════ -->
+      <!-- ══════ 姓名+出生年月 双重验证解锁（付款后显示） ══════ -->
       <div class="hidden" id="nameVerifySection" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
         <div style="color:var(--green);font-size:1.1em;margin-bottom:8px;">✅ 支付已确认</div>
         <div style="color:var(--text);font-size:0.85em;margin-bottom:12px;">
-          输入排盘时填写的姓名，验证后查看完整命盘
+          输入排盘时填写的姓名和出生年月，验证后查看完整命盘
         </div>
-        <div class="paywall-unlock">
-          <input type="text" id="verifyNameInput" placeholder="输入姓名" maxlength="10" style="letter-spacing:0.1em;text-align:center;" onkeydown="if(event.key==='Enter')verifyName()">
-          <button class="btn-unlock" onclick="verifyName()">🔓 验证</button>
+        <div class="paywall-unlock" style="max-width:100%;flex-direction:column;gap:6px;">
+          <input type="text" id="verifyNameInput" placeholder="输入姓名" maxlength="10" style="letter-spacing:0.1em;text-align:center;padding:8px 12px;" onkeydown="if(event.key==='Enter')document.getElementById('verifyBirthYear').focus()">
+          <div class="form-row" style="gap:6px;">
+            <select id="verifyBirthYear" style="flex:1.2;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:0.85em;padding:8px 6px;font-family:inherit;"></select>
+            <select id="verifyBirthMonth" style="flex:1;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:0.85em;padding:8px 6px;font-family:inherit;" onchange=""></select>
+          </div>
+          <button class="btn-unlock" onclick="verifyAccess()" style="width:100%;padding:10px;font-size:0.95em;">🔓 验证并查看命盘</button>
         </div>
-        <div class="paywall-hint" id="verifyHint">💡 输入你最开始填写的姓名</div>
+        <div class="paywall-hint" id="verifyHint">💡 输入排盘时填写的姓名和出生年月（公历）</div>
         <div id="verifyError" style="color:#c0392b;font-size:0.8em;margin-top:6px;min-height:1.2em;"></div>
       </div>
 
@@ -1340,6 +1347,7 @@ function doReading() {
   // Store global data for Server酱 notification
   _currentSessionCode = sessionCode;
   _currentName = name;
+  _currentBirth = {year: y, month: m};
   _currentTeaser = teaserData;
   // Store bazi data for AI analysis
   _baziData = {
@@ -1369,6 +1377,7 @@ function doReading() {
     localStorage.setItem('fortune_session', JSON.stringify({
       name: name,
       sessionCode: sessionCode,
+      birth: {year: y, month: m},
       teaserData: teaserData,
       baziData: _baziData,
       status: 'pending'
@@ -1388,6 +1397,7 @@ var SERVERCHAN_SENDKEY = 'SCT364331TK5ray06wD2wLfPws4ZL3dUzk';
 var _currentSessionCode = '';
 var _currentName = '';
 var _currentTeaser = {};
+var _currentBirth = {}; // {year: YYYY, month: M}
 // 八字数据（供AI分析使用）
 var _baziData = {
   stems: [], branches: [], dmStem: 0, dmElem: 0,
@@ -1485,27 +1495,51 @@ function onUnlocked() {
   document.getElementById('unlockWaiting').classList.add('hidden');
   document.getElementById('unlockDone').classList.remove('hidden');
   document.getElementById('paywallError').textContent = '';
-  // 不直接显示命盘，改为显示姓名验证
+  // 显示姓名+出生年月验证
   document.getElementById('nameVerifySection').classList.remove('hidden');
   document.getElementById('verifyNameInput').value = '';
   document.getElementById('verifyError').textContent = '';
+  // 填充出生年月下拉框
+  populateVerifyBirthSelects();
+  // 默认选中排盘时的年月
+  if (_currentBirth.year) {
+    document.getElementById('verifyBirthYear').value = _currentBirth.year;
+    document.getElementById('verifyBirthMonth').value = _currentBirth.month;
+  }
   document.getElementById('verifyNameInput').focus();
 }
 
-// 姓名验证解锁
-function verifyName() {
-  var input = document.getElementById('verifyNameInput').value.trim();
+// 姓名 + 出生年月 双重验证解锁
+function verifyAccess() {
+  var nameInput = document.getElementById('verifyNameInput').value.trim();
+  var birthYear = parseInt(document.getElementById('verifyBirthYear').value);
+  var birthMonth = parseInt(document.getElementById('verifyBirthMonth').value);
   var errEl = document.getElementById('verifyError');
-  if (!input) {
-    errEl.textContent = '⚠ 请输入你的姓名';
+
+  // 校验姓名
+  if (!nameInput) {
+    errEl.textContent = '⚠ 请输入排盘时填写的姓名';
+    document.getElementById('verifyNameInput').focus();
     return;
   }
-  if (input !== _currentName) {
-    errEl.textContent = '⚠ 姓名不匹配，请重新输入排盘时填写的姓名';
+  if (nameInput !== _currentName) {
+    errEl.textContent = '⚠ 姓名不匹配，请重新输入';
     document.getElementById('verifyNameInput').value = '';
     document.getElementById('verifyNameInput').focus();
     return;
   }
+
+  // 校验出生年月
+  if (!birthYear || !birthMonth) {
+    errEl.textContent = '⚠ 请选择出生年月';
+    return;
+  }
+  if (birthYear !== _currentBirth.year || birthMonth !== _currentBirth.month) {
+    errEl.textContent = '⚠ 出生年月不匹配，请重新选择';
+    return;
+  }
+
+  // 双重校验通过！
   errEl.textContent = '';
   document.getElementById('nameVerifySection').classList.add('hidden');
   document.getElementById('paywallCard').style.display = 'none';
@@ -1543,6 +1577,7 @@ function restoreSession() {
   // 恢复全局变量
   _currentSessionCode = saved.sessionCode;
   _currentName = saved.name;
+  _currentBirth = saved.birth || {};
   _currentTeaser = saved.teaserData;
   if (saved.baziData) _baziData = saved.baziData;
 
@@ -1755,6 +1790,25 @@ function getBaziGod(dmStem, otherStem) {
     '比肩','劫财','食神','伤官','正财','偏财','正官','七杀','正印','偏印'
   ];
   return godMap[diff];
+}
+
+// 填充解锁验证区的出生年月下拉框
+function populateVerifyBirthSelects() {
+  var ySel = document.getElementById('verifyBirthYear');
+  var mSel = document.getElementById('verifyBirthMonth');
+  // 只填充一次
+  if (ySel.options.length > 0) return;
+  var curYear = new Date().getFullYear();
+  for (var y = 1900; y <= curYear; y++) {
+    var opt = document.createElement('option');
+    opt.value = y; opt.textContent = y + '年';
+    ySel.appendChild(opt);
+  }
+  for (var m = 1; m <= 12; m++) {
+    var opt = document.createElement('option');
+    opt.value = m; opt.textContent = m + '月';
+    mSel.appendChild(opt);
+  }
 }
 
 // ═══════════════ 初始化年月日下拉框 ═══════════════
