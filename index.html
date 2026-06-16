@@ -1888,29 +1888,17 @@ function esc(s) {
 
 // 写订单到Supabase + 开始轮询解锁状态
 function postSession(code, name, birth, teaser) {
-  var data = {
+  sbInsert('fortune_sessions', {
     session_code: code,
     name: name,
     birth_json: birth,
     teaser: teaser,
     status: 'pending'
-  };
-  // 尝试带 service_type 写入，如果列不存在自动回退
-  var svc = _currentService || 'bazi';
-  data.service_type = svc;
-  sbInsert('fortune_sessions', data).then(function(r){
-    // 如果返回空或报错，可能是列不存在，去掉重试
-    if (!r || r.error) throw new Error(r ? r.error.message : 'empty');
+  }).then(function(){
     startStatusPolling(code);
   }).catch(function(e){
-    console.warn('带类型写入失败，尝试不带service_type:', e.message);
-    delete data.service_type;
-    sbInsert('fortune_sessions', data).then(function(){
-      startStatusPolling(code);
-    }).catch(function(e2){
-      console.warn('Supabase写入失败，走本地模式:', e2.message);
-      // 本地模式
-    });
+    console.warn('Supabase写入失败，走本地模式:', e.message);
+    // 本地模式
   });
 }
 
