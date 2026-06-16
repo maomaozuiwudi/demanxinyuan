@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>四柱八字 · 命理排盘</title>
+<title>科学宝典 · ChatGPT算命</title>
 <style>
 :root {
   --bg: #1a0a0a;
@@ -427,6 +427,257 @@ body {
 .unlock-done {}
 #sessionCodeDisplay { user-select: all; }
   #sessionCodeDisplay { user-select: all; }
+
+/* ── Service Tabs ── */
+.service-tabs {
+  display: flex;
+  gap: 4px;
+  max-width: 540px;
+  margin: 0 auto 20px;
+  overflow-x: auto;
+  padding: 0 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.service-tab {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 0.85em;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  background: transparent;
+  transition: all 0.3s;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+}
+.service-tab:hover {
+  border-color: var(--gold);
+  color: var(--text-light);
+}
+.service-tab.active {
+  background: var(--red);
+  color: var(--gold-light);
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(201,169,110,0.15);
+}
+.service-section { display: block; }
+.service-section.hidden { display: none; }
+
+/* ── Tarot Styles ── */
+.tarot-guidance {
+  text-align: center;
+}
+.tarot-guidance h2 {
+  color: var(--gold-light);
+  font-size: 1.3em;
+  letter-spacing: 0.1em;
+  font-weight: normal;
+  margin-bottom: 6px;
+}
+.tarot-guidance .subtitle {
+  color: var(--text-dim);
+  font-size: 0.8em;
+  margin-bottom: 16px;
+}
+.tarot-guidance .instruction {
+  color: var(--text);
+  font-size: 0.9em;
+  margin-bottom: 16px;
+  line-height: 1.8;
+}
+.tarot-input-area {
+  margin-bottom: 16px;
+}
+.tarot-input-area input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #1a0d0f;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-light);
+  font-size: 0.95em;
+  font-family: inherit;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+.tarot-input-area input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.tarot-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tarot-btn {
+  padding: 10px 18px;
+  font-size: 0.85em;
+  background: linear-gradient(135deg, #5a2a1a, #4a1a10);
+  color: var(--gold-light);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s;
+}
+.tarot-btn:hover {
+  background: linear-gradient(135deg, #7a3a2a, #5a2a1a);
+  box-shadow: 0 0 12px rgba(201,169,110,0.15);
+}
+.tarot-btn:active { transform: scale(0.96); }
+
+/* Tarot Cards Display */
+.tarot-cards-area {
+  margin: 16px 0;
+  min-height: 200px;
+}
+.tarot-layout {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.tarot-layout-5 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 400px;
+  margin: 16px auto;
+  justify-items: center;
+}
+.tarot-layout-5 .slot-center { grid-column: 2; }
+.tarot-layout-5 .slot-top-left { grid-column: 1; grid-row: 1; }
+.tarot-layout-5 .slot-top-right { grid-column: 3; grid-row: 1; }
+.tarot-layout-5 .slot-bottom-left { grid-column: 1; grid-row: 2; }
+.tarot-layout-5 .slot-bottom-right { grid-column: 3; grid-row: 2; }
+
+.tarot-card-slot {
+  width: 120px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+.tarot-card-slot:hover { transform: translateY(-4px); }
+.tarot-card-back {
+  width: 100px; height: 150px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #2a1815, #1a0a0a);
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5em;
+  color: var(--gold);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: all 0.5s;
+}
+.tarot-card-back.flipped {
+  background: linear-gradient(135deg, #1a0d0f, #2a1215);
+  border-color: var(--gold-light);
+}
+.tarot-card-front {
+  width: 100px; min-height: 150px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #1a0d0f, #2a1215);
+  border: 2px solid var(--gold-light);
+  border-radius: 8px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: all 0.5s;
+}
+.tarot-card-front .card-name {
+  font-size: 0.85em;
+  color: var(--gold-light);
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+.tarot-card-front .card-orientation {
+  font-size: 0.7em;
+  margin-bottom: 4px;
+}
+.tarot-card-front .card-orientation.upright { color: var(--gold); }
+.tarot-card-front .card-orientation.reversed { color: #8a5a5a; }
+.tarot-card-front .card-keywords {
+  font-size: 0.6em;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.tarot-card-slot .slot-label {
+  font-size: 0.7em;
+  color: var(--text-dim);
+  margin-top: 6px;
+  letter-spacing: 0.05em;
+}
+.tarot-card-slot.flipped .tarot-card-back { display: none; }
+.tarot-card-slot:not(.flipped) .tarot-card-front { display: none; }
+
+/* Tarot Reading Results */
+.tarot-reading {
+  text-align: left;
+}
+.tarot-card-detail {
+  background: #1a0d0f;
+  border-radius: 6px;
+  padding: 14px;
+  margin: 10px 0;
+  border-left: 3px solid var(--gold);
+}
+.tarot-card-detail .detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.tarot-card-detail .detail-name {
+  color: var(--gold-light);
+  font-size: 1em;
+  font-weight: bold;
+}
+.tarot-card-detail .detail-pos {
+  font-size: 0.8em;
+  color: var(--text-dim);
+}
+.tarot-card-detail .detail-orientation {
+  font-size: 0.75em;
+}
+.tarot-card-detail .detail-meaning {
+  color: var(--text);
+  font-size: 0.85em;
+  line-height: 1.8;
+}
+.tarot-ai-reading {
+  background: #1a0d0f;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 12px 0;
+  border-left: 3px solid var(--gold);
+  line-height: 2;
+  font-size: 0.9em;
+}
+.tarot-ai-reading .title {
+  color: var(--gold-light);
+  font-size: 0.9em;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 480px) {
+  .tarot-card-slot { width: 90px; }
+  .tarot-card-back, .tarot-card-front { width: 78px; min-height: 120px; }
+  .tarot-card-back { font-size: 2em; height: 120px; }
+  .tarot-card-front .card-name { font-size: 0.7em; }
+  .tarot-card-front .card-keywords { font-size: 0.55em; }
+  .tarot-layout-5 { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .tarot-btns { flex-direction: column; align-items: stretch; }
+}
 </style>
 <script>
 /* Supabase REST API 封装（兼容写法，支持所有浏览器） */
@@ -470,6 +721,24 @@ function sbSelect(table) {
   }).then(function(r){ return r.json(); });
 }
 
+// 当前服务类型
+var _currentService = 'bazi';
+
+// 服务切换
+function switchService(name) {
+  _currentService = name;
+  // 切换标签高亮
+  var tabs = document.querySelectorAll('.service-tab');
+  tabs.forEach(function(t){ t.classList.remove('active'); });
+  var activeTab = document.querySelector('.service-tab[data-service="' + name + '"]');
+  if (activeTab) activeTab.classList.add('active');
+  // 切换服务内容
+  var sections = document.querySelectorAll('.service-section');
+  sections.forEach(function(s){ s.classList.add('hidden'); });
+  var target = document.querySelector('.service-section[data-service="' + name + '"]');
+  if (target) target.classList.remove('hidden');
+}
+
 // 轮询检查订单状态
 var _pollTimer = null;
 function startStatusPolling(code) {
@@ -481,7 +750,11 @@ function startStatusPolling(code) {
         if (rows && rows.length > 0 && rows[0].status === 'unlocked') {
           clearInterval(_pollTimer);
           _pollTimer = null;
-          onUnlocked();
+          if (_currentService === 'tarot') {
+            onTarotUnlocked();
+          } else {
+            onUnlocked();
+          }
         }
       })
       .catch(function(){});
@@ -492,9 +765,20 @@ function startStatusPolling(code) {
 <body>
 
 <div class="header">
-  <h1>四 柱 八 字</h1>
-  <div class="sub">命 理 排 盘</div>
+  <h1>科 学 宝 典</h1>
+    <div class="sub">ChatGPT 驱 动 · 大 数 据 分 析</div>
 </div>
+
+<!-- 服务切换标签栏 -->
+<div class="service-tabs" id="serviceTabs">
+  <button class="service-tab active" data-service="bazi" onclick="switchService('bazi')">🔮 八字批命</button>
+  <button class="service-tab" data-service="tarot" onclick="switchService('tarot')">🃏 塔罗占卜</button>
+  <button class="service-tab" data-service="dream" onclick="switchService('dream')" style="opacity:0.5">🌙 解梦(待)</button>
+  <button class="service-tab" data-service="word" onclick="switchService('word')" style="opacity:0.5">📝 测字(待)</button>
+</div>
+
+<!-- ═══════════ 八字批命服务 ═══════════ -->
+<div class="service-section" data-service="bazi" id="baziSection">
 
 <!-- ═══════════ INPUT ═══════════ -->
 <div class="card" id="inputCard">
@@ -717,7 +1001,128 @@ function startStatusPolling(code) {
 
 </div><!-- end #resultArea -->
 
-<div class="footer">仅供娱乐 · 命由己造 · 相由心生</div>
+</div><!-- end #baziSection -->
+
+<!-- ═══════════ 塔罗占卜服务 ═══════════ -->
+<div class="service-section hidden" data-service="tarot" id="tarotSection">
+
+  <!-- 塔罗指引区 -->
+  <div class="card tarot-guidance" id="tarotGuidance">
+    <h2>🃏 塔罗占卜</h2>
+    <div class="subtitle">集中精神，默念你的问题</div>
+    <div class="instruction">
+      抽牌前请先静心10秒，想好你想问的问题（事业、感情、运势等）
+    </div>
+    <div class="tarot-input-area">
+      <input type="text" id="tarotQuestion" placeholder="你的问题（可选）" maxlength="100">
+    </div>
+    <div class="tarot-btns">
+      <button class="tarot-btn" onclick="drawTarot(1)">🔮 单张指引</button>
+      <button class="tarot-btn" onclick="drawTarot(3)">🔮 三张牌阵（过去·现在·未来）</button>
+      <button class="tarot-btn" onclick="drawTarot(5)">🔮 五张牌阵（深入剖析）</button>
+    </div>
+  </div>
+
+  <!-- 塔罗牌展示区 -->
+  <div id="tarotResultArea" class="hidden">
+
+    <!-- 牌阵展示 -->
+    <div class="card" id="tarotCardsCard">
+      <div class="section-title">🔮 抽牌结果</div>
+      <div class="tarot-cards-area" id="tarotCardsArea"></div>
+      <div class="tarot-reading" id="tarotPreviewReading" style="display:none;"></div>
+    </div>
+
+    <!-- 付费解锁墙（共用） -->
+    <div class="card" id="tarotPaywallCard">
+      <div class="paywall-icon">🔒</div>
+      <div class="paywall-title">支 付 后 解 锁 完 整 解 读</div>
+
+      <!-- 塔罗预览 -->
+      <div class="paywall-teaser" id="tarotPaywallTeaser">
+        <div class="teaser-highlight" id="tarotTeaserLine"></div>
+        <div id="tarotTeaserSub"></div>
+      </div>
+
+      <!-- 收款码 -->
+      <div class="section-title" style="display:inline-block;margin-bottom:8px;">微信扫码支付</div>
+      <div class="qr-wrapper" id="tarotQrWrapper" style="margin:0 auto;">
+        <a href="pay_qr.jpg" target="_blank">
+          <img id="tarotQrImage" src="pay_qr.jpg" alt="收款码" class="qr-img" style="cursor:pointer;">
+        </a>
+      </div>
+      <div style="color:var(--text-dim);font-size:0.8em;margin:8px 0;">
+        命理分析 · 随缘随喜
+      </div>
+      <div style="color:var(--text-dim);font-size:0.7em;margin:4px 0;">
+        👆 点击收款码放大 → 长按识别图中二维码
+      </div>
+      <div style="color:#c0392b;font-size:0.75em;margin:8px 0 0;border:1px dashed rgba(192,57,43,0.3);border-radius:4px;padding:6px 10px;background:rgba(192,57,43,0.05);">
+        ⚠️ 每日凌晨 1:00 — 上午 9:00 摊主休息，请勿付款
+      </div>
+      <div style="color:var(--text-dim);font-size:0.75em;margin:8px 0;border:1px solid var(--border);border-radius:6px;padding:8px;background:rgba(255,255,255,0.03);">
+        💡 退出保存图片去付款？没关系<br>
+        回来输入同样姓名即可继续解锁
+      </div>
+
+      <!-- 我已付款 + 远程解锁 -->
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+
+        <!-- 我已付款按钮 -->
+        <div id="tarotPaywallPaidSection">
+          <button class="btn" id="tarotBtnPaid" onclick="tarotNotifyPaid()"
+            style="max-width:280px;margin:0 auto;font-size:1em;padding:12px;">
+            💰 我 已 付 款
+          </button>
+          <div style="color:var(--text-dim);font-size:0.7em;margin-top:6px;">
+            点击后通知摊主解锁 · <span id="tarotPaidSessionCode" style="color:var(--gold);font-family:monospace;">---</span>
+          </div>
+          <div id="tarotPaidStatus" style="font-size:0.8em;margin-top:8px;min-height:1.2em;"></div>
+        </div>
+
+        <!-- 等待解锁 -->
+        <div class="unlock-waiting hidden" id="tarotUnlockWaiting">
+          <div class="waiting-spinner"></div>
+          <div style="color:var(--gold-light);margin:8px 0;">等待摊主确认支付…</div>
+          <div style="color:var(--text-dim);font-size:0.7em;">完整解读将在解锁后自动显示</div>
+          <div style="color:var(--text-dim);font-size:0.65em;margin-top:6px;">
+            会话编号: <span id="tarotSessionCodeDisplay" style="color:var(--gold);font-family:monospace;">---</span>
+          </div>
+        </div>
+
+        <!-- 已解锁 -->
+        <div class="unlock-done hidden" id="tarotUnlockDone">
+          <div style="color:var(--green);font-size:1.2em;">✅ 支付已确认，解读已解锁</div>
+        </div>
+
+        <div id="tarotPaywallError"></div>
+      </div>
+    </div>
+
+    <!-- 完整解读（解锁后） -->
+    <div id="tarotFullResults" class="hidden">
+      <div class="card result-card">
+        <div class="section-title">🃏 牌面详解</div>
+        <div id="tarotCardDetails"></div>
+      </div>
+      <div class="card result-card" id="tarotAiCard" style="display:none;">
+        <div class="section-title">📜 综合运势分析</div>
+        <div class="tarot-ai-reading" id="tarotAiReading">
+          <div class="title">🔮 AI 塔罗解读</div>
+          <div id="tarotAiContent">正在生成解读...</div>
+        </div>
+        <div style="text-align:center;color:var(--text-dim);font-size:0.75em;margin-top:4px;" id="tarotAiStatus"></div>
+      </div>
+      <div style="max-width:540px;margin:0 auto;">
+        <button class="btn" onclick="resetTarot()">↩ 重新抽牌</button>
+      </div>
+    </div>
+
+  </div><!-- end #tarotResultArea -->
+
+</div><!-- end #tarotSection -->
+
+<div class="footer">科学宝典 · 所有数据仅供参考 · 结果由AI生成</div>
 
 <script>
 // ═══════════════ CONSTANTS ═══════════════
@@ -1488,6 +1893,7 @@ function postSession(code, name, birth, teaser) {
     name: name,
     birth_json: birth,
     teaser: teaser,
+    service_type: _currentService || 'bazi',
     status: 'pending'
   }).then(function(){
     startStatusPolling(code);
@@ -1896,9 +2302,516 @@ function updateDays() {
 document.addEventListener('DOMContentLoaded', function() {
   initDateSelects();
   restoreSession();
+  initTarotQR();
 });
 // 如果页面已经加载完了，直接执行
-if (document.readyState !== 'loading') { initDateSelects(); restoreSession(); }
+if (document.readyState !== 'loading') { initDateSelects(); restoreSession(); initTarotQR(); }
+
+// ═══════════════ 塔罗牌数据（78张韦特标准牌库）═══════════════
+var TAROT_CARDS = [
+  // ── 22张大阿卡纳 ──
+  {id:0,name:'愚者',type:'major',number:0,keywords_up:['开始','冒险','天真','自由'],keywords_rev:['鲁莽','愚蠢','不顾后果','轻率'],meaning_up:'愚者代表着全新的开始、冒险和无限可能。你即将踏上一段未知的旅程，保持开放的心态和纯真的信念，勇敢地迈出第一步。',meaning_rev:'逆位愚者警告你不要冲动行事。你可能在逃避责任或做出轻率的决定。放慢脚步，三思而后行。'},
+  {id:1,name:'魔术师',type:'major',number:1,keywords_up:['创造力','技巧','自信','掌握'],keywords_rev:['欺骗','操纵','才能浪费','犹豫'],meaning_up:'魔术师象征着创造力和掌握力。你拥有完成目标所需的一切资源和技能。相信自己的能力，运用智慧去实现愿望。',meaning_rev:'逆位魔术师暗示才能被浪费或有人在操纵局势。你可能缺乏自信或准备不足。重新评估你的计划。'},
+  {id:2,name:'女祭司',type:'major',number:2,keywords_up:['直觉','神秘','内在智慧','潜意识'],keywords_rev:['秘密','隐藏','表面现象','直觉受阻'],meaning_up:'女祭司代表着直觉和内在智慧。请倾听你内心的声音，答案隐藏在表象之下。这是一个静观其变的时刻。',meaning_rev:'逆位女祭司指你忽略了直觉或流于表面。可能有秘密被隐藏，需要更深入地探索真相。'},
+  {id:3,name:'女皇',type:'major',number:3,keywords_up:['丰饶','丰收','母性','自然'],keywords_rev:['依赖','空虚','创造力受阻','疏忽'],meaning_up:'女皇象征着丰饶、丰收和母性的滋养。这是一个收获的季节，享受生活的美好。与大自然连接，关注家庭和情感。',meaning_rev:'逆位女皇暗示创造力受阻或过度依赖他人。你可能忽略了自我照顾或家庭责任。关注内在的滋养。'},
+  {id:4,name:'皇帝',type:'major',number:4,keywords_up:['权威','稳定','结构','父亲'],keywords_rev:['暴政','僵化','滥用权力','缺乏纪律'],meaning_up:'皇帝代表着权威、稳定和结构。建立一个稳固的体系，用纪律和规划来实现目标。这是一个需要领导和掌控的时刻。',meaning_rev:'逆位皇帝暗示权力的滥用或过于僵化。你可能在抗拒必要的结构，或者权威被挑战。寻求平衡。'},
+  {id:5,name:'教皇',type:'major',number:5,keywords_up:['传统','信仰','教诲','精神导师'],keywords_rev:['叛逆','打破常规','独立思考','过度保守'],meaning_up:'教皇象征着传统、信仰和精神的指引。寻求智者的建议，遵循既定的规则和价值观。教育或仪式对你很重要。',meaning_rev:'逆位教皇鼓励你打破常规，独立思考。不要盲目接受他人的教导，找到你自己的真理和信仰。'},
+  {id:6,name:'恋人',type:'major',number:6,keywords_up:['爱情','选择','结合','和谐'],keywords_rev:['失衡','冲突','价值观分歧','分离'],meaning_up:'恋人的牌象征着爱情、美和重要的人生选择。你面临一个关于感情或价值观的决定，跟随内心真正的声音。',meaning_rev:'逆位恋人暗示关系的失衡或价值观的分歧。可能是沟通不畅或面临分离的抉择。需要重新审视你的关系。'},
+  {id:7,name:'战车',type:'major',number:7,keywords_up:['胜利','决心','意志力','掌控'],keywords_rev:['失控','冲突','缺乏方向','挫败'],meaning_up:'战车象征着胜利、决心和意志力的胜利。通过自律和专注，你将战胜障碍，达到目标。保持前进的方向。',meaning_rev:'逆位战车暗示失控或缺乏方向。你可能被内心的冲突或外界的干扰所困。重新找回你的意志力。'},
+  {id:8,name:'力量',type:'major',number:8,keywords_up:['勇气','力量','耐心','控制'],keywords_rev:['软弱','自卑','缺乏信念','屈服'],meaning_up:'力量牌代表内在的勇气、耐心和坚韧。真正的力量来自于内心的平静和对自我的掌控。用温柔战胜强硬。',meaning_rev:'逆位力量暗示内心软弱或缺乏自信。你可能在向恐惧屈服或低估了自己的能力。找回你内在的力量。'},
+  {id:9,name:'隐士',type:'major',number:9,keywords_up:['内省','智慧','独处','寻找真相'],keywords_rev:['孤独','孤立','迷失方向','退缩'],meaning_up:'隐士象征着内省、寻找真理和独处的智慧。这是一个退隐静思的时期，向内探索，寻找内心的光明和指引。',meaning_rev:'逆位隐士暗示过度的孤立或迷失方向。你可能在回避必要的社交或不愿面对真相。走出你的藏身处。'},
+  {id:10,name:'命运之轮',type:'major',number:10,keywords_up:['变化','周期','命运','转折点'],keywords_rev:['厄运','抵抗变化','受阻','失控'],meaning_up:'命运之轮象征着生命的循环变化和命运的转折点。好运即将来临，但记住一切都是周期性的。顺应变化。',meaning_rev:'逆位命运之轮暗示厄运或抗拒变化。你可能感觉被困在坏运气中，但记住车轮终将转动。保持耐心。'},
+  {id:11,name:'正义',type:'major',number:11,keywords_up:['公正','真相','因果','平衡'],keywords_rev:['不公','欺骗','逃避责任','失衡'],meaning_up:'正义象征着公正、真理和因果关系。你的行为将得到应有的回报。诚实面对自己和他人，做正确的事。',meaning_rev:'逆位正义暗示不公或逃避责任。你可能在自欺欺人或被不公正地对待。诚实面对真相。'},
+  {id:12,name:'倒吊人',type:'major',number:12,keywords_up:['牺牲','放慢','暂停','新视角'],keywords_rev:['拖延','抗拒','不必要的牺牲','停滞'],meaning_up:'倒吊人象征着自愿的牺牲和换位思考。有时需要暂停和放慢，从不同的角度看问题。牺牲是为了更大的收获。',meaning_rev:'逆位倒吊人暗示拖延或无谓的牺牲。你可能在抗拒必要的改变。释放你的执念，让事情自然发展。'},
+  {id:13,name:'死神',type:'major',number:13,keywords_up:['结束','转变','放手','新生'],keywords_rev:['抗拒改变','停滞','恐惧','拖延'],meaning_up:'死神代表着结束、转变和新的开始。旧的篇章必须结束，新的才能开始。不要恐惧变化，放下该放下的。',meaning_rev:'逆位死神暗示抗拒改变或困在停滞中。你可能害怕放手，但拖延只会增加痛苦。勇敢面对转变。'},
+  {id:14,name:'节制',type:'major',number:14,keywords_up:['平衡','适度','调和','耐心'],keywords_rev:['失衡','过度','缺乏耐心','纷扰'],meaning_up:'节制象征着平衡、适度与调和。在生活的各方面找到中道，保持耐心和和谐。融合对立面，创造新的平衡。',meaning_rev:'逆位节制暗示失衡或过度。你可能在某个方面走极端，缺乏耐心。调整步伐，回归平衡。'},
+  {id:15,name:'恶魔',type:'major',number:15,keywords_up:['束缚','欲望','物质主义','沉迷'],keywords_rev:['释放','觉醒','挣脱','重获自由'],meaning_up:'恶魔象征着束缚、欲望和物质主义的诱惑。你可能被困在不健康的关系或习惯中。认清是什么在束缚你。',meaning_rev:'逆位恶魔代表着觉醒和解放。你正在挣脱束缚，重获自由。是时候放下恐惧和执念了。'},
+  {id:16,name:'高塔',type:'major',number:16,keywords_up:['突变','崩塌','启示','破坏'],keywords_rev:['避免灾难','抵抗','危机预警','重建'],meaning_up:'高塔象征着突发的改变、崩塌和觉醒。旧有的结构被摧毁，为新生腾出空间。虽然痛苦，但这是必要的解放。',meaning_rev:'逆位高塔暗示你正在避免灾难或抗拒必要的崩塌。你可以通过提前行动减少损失。准备重建。'},
+  {id:17,name:'星星',type:'major',number:17,keywords_up:['希望','灵感','宁静','指引'],keywords_rev:['失望','绝望','缺乏灵感','怀疑'],meaning_up:'星星是一张充满希望和灵感的牌。宁静和信心充满了你的内心。相信未来，保持乐观，你的愿望终将实现。',meaning_rev:'逆位星星暗示失望或缺乏信念。你可能感到迷茫或失去了方向。重新找回你的希望和信心。'},
+  {id:18,name:'月亮',type:'major',number:18,keywords_up:['幻觉','恐惧','潜意识','迷惑'],keywords_rev:['释然','恐惧消退','看清真相','清醒'],meaning_up:'月亮象征着幻觉、恐惧和潜意识中的不安。事情不是表面看起来那样。相信你的直觉，穿越迷雾。',meaning_rev:'逆位月亮意味着恐惧正在消退，真相逐渐浮出水面。你正在克服内心的不安，走向清醒。'},
+  {id:19,name:'太阳',type:'major',number:19,keywords_up:['成功','喜悦','活力','成就'],keywords_rev:['暂时阴霾','过度乐观','骄傲','热情减退'],meaning_up:'太阳是塔罗中最吉利的牌之一，象征着成功、喜悦和活力。一切都很光明，你的努力得到了回报。享受这美好的时刻。',meaning_rev:'逆位太阳意味着短暂的低潮或过度乐观。成功的热情可能减退，但太阳总会再次升起。保持信心。'},
+  {id:20,name:'审判',type:'major',number:20,keywords_up:['觉醒','审判','重生','自我评估'],keywords_rev:['自我怀疑','拒绝觉醒','悔恨','犹豫'],meaning_up:'审判牌代表着觉醒、重生和内心的召唤。是时候诚实地评估过去，为新的生命阶段做好准备。听到内心的呼唤。',meaning_rev:'逆位审判暗示拒绝觉醒或自我怀疑。你可能在回避重要的决定或放任机会溜走。勇敢面对。'},
+  {id:21,name:'世界',type:'major',number:21,keywords_up:['完成','圆满','成就','旅程终点'],keywords_rev:['未完成','停滞','缺乏成就','延迟'],meaning_up:'世界是塔罗中最圆满的牌，象征着完成、成就和旅程的终点。一个重要的周期圆满结束，你达到了你想要的目标。',meaning_rev:'逆位世界暗示未完成或延迟。你接近目标的达成但还有最后的障碍。不要放弃，坚持到底。'},
+
+  // ── 权杖组 (Wands) ──
+  {id:22,name:'权杖一',type:'wands',number:1,keywords_up:['开始','灵感','创造','新机会'],keywords_rev:['延迟','缺乏动力','错误开始','退缩'],meaning_up:'权杖一象征着新的开始、灵感和创造力。一个激动人心的新机会出现在你面前，抓住它，点燃你的热情。',meaning_rev:'逆位权杖一暗示延迟或缺乏动力。你可能错过了一个好机会。重新点燃你内心的火焰。'},
+  {id:23,name:'权杖二',type:'wands',number:2,keywords_up:['规划','未来','走出舒适区','选择'],keywords_rev:['恐惧改变','优柔寡断','计划受阻','冲动'],meaning_up:'权杖二代表着规划和未来的选择。站在十字路口，你需要走出舒适区，做出有远见的决定。',meaning_rev:'逆位权杖二暗示恐惧改变或优柔寡断。计划可能受阻，需要重新评估你的方向。'},
+  {id:24,name:'权杖三',type:'wands',number:3,keywords_up:['远见','探索','扩展','贸易'],keywords_rev:['障碍','延误','缺乏远见','挫折'],meaning_up:'权杖三象征着远见和探索。你的视野正在扩展，新的机遇在远方等待。做好准备，踏上新的旅程。',meaning_rev:'逆位权杖三暗示障碍和延误。你的计划可能遇到挫折。重新审视你的策略和方向。'},
+  {id:25,name:'权杖四',type:'wands',number:4,keywords_up:['庆祝','和谐','家园','稳定'],keywords_rev:['冲突','不稳定','缺乏归属','庆祝取消'],meaning_up:'权杖四象征着庆祝、和谐与稳定。你努力换来了成果，享受与亲友团聚的美好时光。家是温暖的港湾。',meaning_rev:'逆位权杖四暗示不和谐或稳定被打破。可能有家庭矛盾或归属感的缺失。重建你的安全感。'},
+  {id:26,name:'权杖五',type:'wands',number:5,keywords_up:['竞争','冲突','奋斗','分歧'],keywords_rev:['合作','化解冲突','避免竞争','达成共识'],meaning_up:'权杖五代表着竞争、冲突和不同的意见。生活中出现了分歧和挑战，但这是成长的必经过程。',meaning_rev:'逆位权杖五暗示合作和化解冲突。分歧正在平息，各方开始寻求共识。和平正在回归。'},
+  {id:27,name:'权杖六',type:'wands',number:6,keywords_up:['胜利','认可','成就','好消息'],keywords_rev:['自负','失败','缺乏认可','骄傲自满'],meaning_up:'权杖六是一张胜利的牌，象征着成就、认可和公众的赞誉。你的努力得到回报，凯旋归来。',meaning_rev:'逆位权杖六暗示骄傲自满或失败。成功可能来得太容易让你变得自负。保持谦逊。'},
+  {id:28,name:'权杖七',type:'wands',number:7,keywords_up:['挑战','防守','坚持','优势'],keywords_rev:['不堪重负','放弃','认输','劣势'],meaning_up:'权杖七代表着挑战和坚持。你处在防守的位置，但你有优势。勇敢捍卫你的立场，不要轻易放弃。',meaning_rev:'逆位权杖七暗示不堪重负或放弃。压力太大让你喘不过气。有时候退一步是为了更好地前进。'},
+  {id:29,name:'权杖八',type:'wands',number:8,keywords_up:['速度','行动','快速进展','旅行'],keywords_rev:['延迟','混乱','慢速','方向错误'],meaning_up:'权杖八象征着快速进展和行动。事情正在飞速向前发展，好消息即将到来。顺其自然的flow。',meaning_rev:'逆位权杖八暗示延迟、混乱或方向错误。快速的节奏被打断。重新调整你的方向。'},
+  {id:30,name:'权杖九',type:'wands',number:9,keywords_up:['坚韧','防守','等待','边界'],keywords_rev:['疲惫','放弃','孤立','暴躁'],meaning_up:'权杖九象征着坚韧和防守。你经历了艰难的时期，但你仍然坚守阵地。坚持住，最后的考验即将过去。',meaning_rev:'逆位权杖九暗示疲惫和放弃的念头。你可能太累了无法继续防守。照顾好自己，寻求帮助。'},
+  {id:31,name:'权杖十',type:'wands',number:10,keywords_up:['重担','责任','压力','超负荷'],keywords_rev:['放下负担','分配责任','减压','释放'],meaning_up:'权杖十代表着沉重的负担和责任。你承担了太多，压力巨大。是时候重新分配任务或寻求帮助了。',meaning_rev:'逆位权杖十意味着释放负担。你正在学会放下，把责任分给别人。减轻压力，轻松前行。'},
+  {id:32,name:'权杖侍从',type:'wands',number:11,keywords_up:['热情','探索','活力','新消息'],keywords_rev:['缺乏方向','丧失热情','不成熟','鲁莽'],meaning_up:'权杖侍从象征着热情、探索和新的消息。带着好奇心和活力去探索新事物。一个好消息即将传来。',meaning_rev:'逆位权杖侍从暗示缺乏方向或热情消退。你可能在开始新事物时缺乏计划。放慢脚步。'},
+  {id:33,name:'权杖骑士',type:'wands',number:12,keywords_up:['行动','冒险','勇气','冲动'],keywords_rev:['鲁莽','冲动','缺乏方向','挫折'],meaning_up:'权杖骑士代表着行动、冒险和勇气。你充满激情和能量，准备好迎接挑战。勇敢地追逐你的目标。',meaning_rev:'逆位权杖骑士暗示鲁莽冲动或缺乏方向。热情有余但计划不足。先规划再行动。'},
+  {id:34,name:'权杖王后',type:'wands',number:13,keywords_up:['自信','魅力','温暖','决断'],keywords_rev:['嫉妒','不安全感','自我怀疑','占有欲'],meaning_up:'权杖王后象征着自信、魅力和热情。你散发出温暖和吸引力，拥有强大的领导力。坚定而温柔地行使你的力量。',meaning_rev:'逆位权杖王后暗示嫉妒或不安全感。你可能在怀疑自己的能力或变得过于占有。找回内心的自信。'},
+  {id:35,name:'权杖国王',type:'wands',number:14,keywords_up:['领导力','远见','企业家精神','荣誉'],keywords_rev:['专横','苛刻','缺乏远见','失败'],meaning_up:'权杖国王代表着领导力、远见和创业精神。你是一个天生的领导者，有能力和魄力去成就大事。',meaning_rev:'逆位权杖国王暗示专横或苛刻。你的领导方式可能过于强硬。学会倾听和授权。'},
+
+  // ── 圣杯组 (Cups) ──
+  {id:36,name:'圣杯一',type:'cups',number:1,keywords_up:['爱','新感情','直觉','喜悦'],keywords_rev:['情感压抑','空虚','爱受阻','无回报'],meaning_up:'圣杯一象征着新感情的开始、爱和喜悦。一段美好的关系或情感体验即将开始。敞开心扉去接受爱。',meaning_rev:'逆位圣杯一暗示情感压抑或爱情受阻。你可能在压抑感受或经历无回报的爱。关注自我关怀。'},
+  {id:37,name:'圣杯二',type:'cups',number:2,keywords_up:['联结','伙伴关系','平等','互相吸引'],keywords_rev:['失衡','分离','沟通不良','分手'],meaning_up:'圣杯二代表着平等的伙伴关系和相互的吸引。一段美好而平衡的感情关系正在发展，彼此尊重和欣赏。',meaning_rev:'逆位圣杯二暗示关系失衡或沟通不良。可能存在分离的危机。坦诚沟通是解决问题的关键。'},
+  {id:38,name:'圣杯三',type:'cups',number:3,keywords_up:['庆祝','友谊','欢乐','聚会'],keywords_rev:['过度享乐','孤立','友谊破裂','嫉妒'],meaning_up:'圣杯三象征着庆祝、友谊和欢乐的时光。与好友相聚，分享喜悦和美好时光。社交生活非常愉快。',meaning_rev:'逆位圣杯三暗示过度享乐或友谊的破裂。可能有人嫉妒或排挤你。保持真诚的关系。'},
+  {id:39,name:'圣杯四',type:'cups',number:4,keywords_up:['沉思','不满','冥想','自省'],keywords_rev:['新机会','觉醒','行动','走出舒适区'],meaning_up:'圣杯四代表着沉思和不满。你沉浸在自己的世界里，对周围的机会视而不见。走出舒适区，看看新可能。',meaning_rev:'逆位圣杯四意味着觉醒和新的机会。你开始注意到之前忽略的可能性。行动起来！'},
+  {id:40,name:'圣杯五',type:'cups',number:5,keywords_up:['失落','悲伤','后悔','专注于失去'],keywords_rev:['接受','放下','向前看','释怀'],meaning_up:'圣杯五象征着失落和悲伤。你沉浸在失去的痛苦中，但请看看身边——还有两个杯子站立。不要只看到失去的。',meaning_rev:'逆位圣杯五暗示接受和放下。你开始从悲伤中走出来，接受现实，重新向前看。'},
+  {id:41,name:'圣杯六',type:'cups',number:6,keywords_up:['怀旧','回忆','童年','纯真'],keywords_rev:['活在当下','向前看','成长','放下过去'],meaning_up:'圣杯六代表着怀旧和回忆。过去的温暖记忆带给你安慰。但不要活在回忆里，珍惜当下的美好。',meaning_rev:'逆位圣杯六暗示你终于放下了过去。不再沉溺于回忆，而是活在当下并向前看。成长了。'},
+  {id:42,name:'圣杯七',type:'cups',number:7,keywords_up:['幻想','选择','白日梦','幻觉'],keywords_rev:['聚焦','现实','做出决定','清醒'],meaning_up:'圣杯七象征着幻想和过多的选择。你可能在做白日梦或面临太多选择。聚焦你的目标，不要被幻觉迷惑。',meaning_rev:'逆位圣杯七意味着聚焦和清醒。你不再沉迷幻想，而是做出明确的选择。现实摆在眼前。'},
+  {id:43,name:'圣杯八',type:'cups',number:8,keywords_up:['离开','寻找更多','精神追求','放手'],keywords_rev:['停滞','逃避','恐惧变化','坚持'],meaning_up:'圣杯八代表着离开和寻求更多。你正在放弃一种舒适但不满足的现状，寻找更深刻的精神满足。',meaning_rev:'逆位圣杯八暗示停滞或恐惧改变。你可能在逃避必要的转变。勇敢地迈出那一步。'},
+  {id:44,name:'圣杯九',type:'cups',number:9,keywords_up:['满足','愿望实现','自信','享乐'],keywords_rev:['不满足','表面幸福','傲慢','自满'],meaning_up:'圣杯九是心愿达成的牌，象征着满足和自信。你得到了你想要的东西，内心充满喜悦和成就感。',meaning_rev:'逆位圣杯九暗示不满足或表面的幸福。你可能拥有了很多但内心仍然空虚。做真实的自己。'},
+  {id:45,name:'圣杯十',type:'cups',number:10,keywords_up:['幸福','家庭','和谐','圆满'],keywords_rev:['家庭冲突','不和谐','表面和平','分裂'],meaning_up:'圣杯十代表着最高的情感满足——幸福的家庭、和谐的关系和情感上的圆满。家和万事兴。',meaning_rev:'逆位圣杯十暗示家庭冲突或表面和平。关系中的裂痕需要正视和修补。沟通是关键。'},
+  {id:46,name:'圣杯侍从',type:'cups',number:11,keywords_up:['灵感','直觉','创意','新消息'],keywords_rev:['情感不成熟','创造力受阻','敏感过度','轻信'],meaning_up:'圣杯侍从象征着灵感和直觉。一个创意的新想法或感情上的新消息正在到来。保持开放和敏感。',meaning_rev:'逆位圣杯侍从暗示情感不成熟或创造力受阻。你可能太敏感或轻信他人。保护自己的心。'},
+  {id:47,name:'圣杯骑士',type:'cups',number:12,keywords_up:['浪漫','理想主义','追求','邀请'],keywords_rev:['嫉妒','情绪化','失望','逃避'],meaning_up:'圣杯骑士代表着浪漫的追求和理想的爱情。一个温柔而有魅力的追求者正在靠近，或你正在追求心中的理想。',meaning_rev:'逆位圣杯骑士暗示嫉妒或情绪化。你的理想主义可能让你失望。面对现实，调整期待。'},
+  {id:48,name:'圣杯王后',type:'cups',number:13,keywords_up:['关怀','直觉','同理心','滋养'],keywords_rev:['依赖','情感压抑','过度牺牲','不安全感'],meaning_up:'圣杯王后象征着关怀、同理心和情感滋养。你用爱和温柔照顾身边的人。你的直觉非常敏锐。',meaning_rev:'逆位圣杯王后暗示过度依赖或情感压抑。你可能在牺牲自己照顾他人。别忘了照顾好自己。'},
+  {id:49,name:'圣杯国王',type:'cups',number:14,keywords_up:['情感成熟','慈悲','智慧','平衡'],keywords_rev:['情绪失控','冷漠','双重标准','压抑'],meaning_up:'圣杯国王象征着情感成熟和慈悲的智慧。你既拥有权威又不失温柔，能够理性地处理情感问题。',meaning_rev:'逆位圣杯国王暗示情绪失控或冷漠。你可能在压抑情感或对待他人不公平。找回情感的平衡。'},
+
+  // ── 宝剑组 (Swords) ──
+  {id:50,name:'宝剑一',type:'swords',number:1,keywords_up:['真理','理智','突破','清晰'],keywords_rev:['混淆','谎言','不公平','冲动'],meaning_up:'宝剑一象征着理智的突破和清晰的思维。一个新的想法或真相即将揭示。用智慧和理性去面对挑战。',meaning_rev:'逆位宝剑一暗示混淆或错误的判断。真相被掩盖，你的判断力可能被误导。保持警惕。'},
+  {id:51,name:'宝剑二',type:'swords',number:2,keywords_up:['僵局','回避','两难','决策'],keywords_rev:['信息不足','优柔寡断','释放','面对'],meaning_up:'宝剑二代表着两难的选择和回避的决定。你正在回避一个困难的决定，但逃避不是长久之计。面对它。',meaning_rev:'逆位宝剑二意味着你开始面对问题。信息逐渐清晰，决定即将做出。释放你的犹豫。'},
+  {id:52,name:'宝剑三',type:'swords',number:3,keywords_up:['心碎','悲伤','痛苦','背叛'],keywords_rev:['愈合','释放','乐观','恢复'],meaning_up:'宝剑三是塔罗中最痛苦的牌之一，象征着心碎、悲伤和背叛。情感上的伤害让你痛苦，但伤口终会愈合。',meaning_rev:'逆位宝剑三暗示愈合和释放。最痛苦的阶段已经过去，你正在从悲伤中恢复。乐观渐归。'},
+  {id:53,name:'宝剑四',type:'swords',number:4,keywords_up:['休息','恢复','冥想','静养'],keywords_rev:['躁动','精疲力竭','失眠','恢复不够'],meaning_up:'宝剑四象征着休息和恢复。你需要一段安静的时光来恢复精力。冥想和休息对你有益。',meaning_rev:'逆位宝剑四暗示躁动不安或休息不足。你太忙碌无法停下。注意身体发出的警告信号。'},
+  {id:54,name:'宝剑五',type:'swords',number:5,keywords_up:['冲突','失败','损失','屈辱'],keywords_rev:['和解','放下','妥协','避免冲突'],meaning_up:'宝剑五代表着冲突和失败。你可能在争斗中取胜，但代价太大。有时候放手比争斗更明智。',meaning_rev:'逆位宝剑五暗示和解与放下。你正在学会选择和平而不是冲突。妥协有时是更好的选择。'},
+  {id:55,name:'宝剑六',type:'swords',number:6,keywords_up:['过渡','转变','放手','走向平静'],keywords_rev:['留恋','阻力','未解决的','停滞'],meaning_up:'宝剑六象征着过渡和走向平静。你正从困境中走出来，带着伤痛但勇敢前行。平静在前方等待。',meaning_rev:'逆位宝剑六暗示留恋过去或阻力。你还没有准备好放手，过渡期延长。接受现实继续前进。'},
+  {id:56,name:'宝剑七',type:'swords',number:7,keywords_up:['策略','欺骗','偷窃','独自行动'],keywords_rev:['坦诚','说实话','归还','被揭穿'],meaning_up:'宝剑七象征着策略和小心机。你可能需要用智谋而非蛮力来解决问题。注意不要欺骗他人。',meaning_rev:'逆位宝剑七暗示坦诚和真相浮现。欺骗被揭穿，归还不属于你的东西。诚实是最好的策略。'},
+  {id:57,name:'宝剑八',type:'swords',number:8,keywords_up:['束缚','无助','困境','自我限制'],keywords_rev:['解放','自由','清晰','新视角'],meaning_up:'宝剑八代表着自我束缚和无助感。你感到被困住了，但很多限制其实是你自己设置的。换个角度看问题。',meaning_rev:'逆位宝剑七暗示解放和新的视角。你正在挣脱自我限制，找到自由。思想变得更清晰。'},
+  {id:58,name:'宝剑九',type:'swords',number:9,keywords_up:['焦虑','噩梦','担忧','恐惧'],keywords_rev:['释然','克服恐惧','希望','放下'],meaning_up:'宝剑九是一张关于焦虑和恐惧的牌。深夜的担忧让你无法安眠。记住，大部分担忧都不会成真。',meaning_rev:'逆位宝剑九意味着释然和克服恐惧。你正在战胜内心的焦虑。希望重新出现，天亮了。'},
+  {id:59,name:'宝剑十',type:'swords',number:10,keywords_up:['终结','痛苦','解脱','触底'],keywords_rev:['重生','恢复','反弹','绝处逢生'],meaning_up:'宝剑十代表着痛苦的终结和触底反弹。一切似乎都结束了，但这其实是新生的前夕。最黑暗的时刻就在黎明前。',meaning_rev:'逆位宝剑十暗示重生和恢复。你正在从低谷中反弹。绝处逢生，新的开始即将到来。'},
+  {id:60,name:'宝剑侍从',type:'swords',number:11,keywords_up:['警觉','求知','观察','沟通'],keywords_rev:['八卦','泄密','粗心','误解'],meaning_up:'宝剑侍从象征着警觉和求知欲。保持清醒的头脑，观察周围的事物。新的信息或消息即将到来。',meaning_rev:'逆位宝剑侍从暗示八卦、泄密或误解。沟通可能出现问题，小心言辞。做事要细心。'},
+  {id:61,name:'宝剑骑士',type:'swords',number:12,keywords_up:['果断','行动','勇敢','直率'],keywords_rev:['冲动','鲁莽','攻击性','草率'],meaning_up:'宝剑骑士代表着果断的行动和直率的态度。你思维敏捷，行动迅速。目标明确，勇往直前。',meaning_rev:'逆位宝剑骑士暗示冲动和鲁莽。你的行动可能太快导致错误。三思而后行，控制攻击性。'},
+  {id:62,name:'宝剑王后',type:'swords',number:13,keywords_up:['独立','清晰','客观','智慧'],keywords_rev:['冷漠','刻薄','孤独','过于理性'],meaning_up:'宝剑王后象征着独立、客观和清晰的智慧。你能够理性地看待问题，做出明智的判断。保持独立性。',meaning_rev:'逆位宝剑王后暗示冷漠和刻薄。你的理性可能变成了冷酷，伤害了身边的人。保持同理心。'},
+  {id:63,name:'宝剑国王',type:'swords',number:14,keywords_up:['权威','逻辑','公正','真理'],keywords_rev:['滥用权力','偏执','冷酷','不公正'],meaning_up:'宝剑国王代表着权威、逻辑和公正。你以理性和智慧行使权力，追求真理和正义。思维清晰且有决断力。',meaning_rev:'逆位宝剑国王暗示偏执或滥用权力。你的判断可能被偏见蒙蔽。保持清醒和公正。'},
+
+  // ── 星币组 (Pentacles) ──
+  {id:64,name:'星币一',type:'pentacles',number:1,keywords_up:['财富','新开始','机会','物质丰收'],keywords_rev:['财务损失','错失机会','匮乏','不稳定'],meaning_up:'星币一代表着财富的新开始和物质的机会。一个新的财务机会或投资项目出现在面前。抓住它。',meaning_rev:'逆位星币一暗示财务损失或机会错失。经济上可能不稳定。审视你的财务状况，谨慎决策。'},
+  {id:65,name:'星币二',type:'pentacles',number:2,keywords_up:['平衡','适应','多任务','灵活'],keywords_rev:['失衡','过度负荷','混乱','财务困境'],meaning_up:'星币二象征着平衡和多任务处理。你需要在多个项目或财务责任之间找到平衡。保持灵活。',meaning_rev:'逆位星币二暗示失衡或财务困境。你承担了太多，难以招架。简化你的生活，减少负担。'},
+  {id:66,name:'星币三',type:'pentacles',number:3,keywords_up:['合作','团队','技能','学徒'],keywords_rev:['缺乏团队精神','散漫','技能不足','不合作'],meaning_up:'星币三象征着合作、团队工作和技能的培养。通过与他人合作，你能取得更好的成果。不断学习提升。',meaning_rev:'逆位星币三暗示缺乏合作或技能不足。团队协作出现问题，或者你的技能还不足以完成任务。'},
+  {id:67,name:'星币四',type:'pentacles',number:4,keywords_up:['守护','保守','财富积累','控制'],keywords_rev:['贪婪','吝啬','恐惧失去','僵化'],meaning_up:'星币四代表着对财富的守护和保守的态度。你在紧紧抓住你的资源。适度积累是好事，但别太吝啬。',meaning_rev:'逆位星币四暗示贪婪或恐惧失去。过度控制反而会导致失去。学会分享和放手。'},
+  {id:68,name:'星币五',type:'pentacles',number:5,keywords_up:['贫困','困难','孤立','不安全感'],keywords_rev:['改善','康复','走出困境','希望'],meaning_up:'星币五象征着物质困难和精神上的孤立。你可能正经历经济上的困难。寻求帮助，你并不孤单。',meaning_rev:'逆位星币五意味着改善和走出困境。困难时期即将过去，新的希望正在到来。坚持下去。'},
+  {id:69,name:'星币六',type:'pentacles',number:6,keywords_up:['慷慨','分享','慈善','接收'],keywords_rev:['不平等','索取','债务','依赖'],meaning_up:'星币六象征着慷慨和分享。你在给予或接受帮助。保持平衡的给予和接受，感恩所拥有的。',meaning_rev:'逆位星币六暗示不平等或过度依赖。你可能在索取过多或陷入债务关系。重新建立平衡。'},
+  {id:70,name:'星币七',type:'pentacles',number:7,keywords_up:['评估','投资','等待','耐心'],keywords_rev:['浪费','缺乏回报','急躁','不良投资'],meaning_up:'星币七代表着评估和等待收获的季节。你的投资和努力需要时间来结果。保持耐心，评估进展。',meaning_rev:'逆位星币七暗示浪费或缺乏回报。你的投入没有带来预期的结果。重新评估你的策略。'},
+  {id:71,name:'星币八',type:'pentacles',number:8,keywords_up:['勤奋','专注','学徒','技能提升'],keywords_rev:['分心','不完美','缺乏专注','半途而废'],meaning_up:'星币八象征着勤奋和专注。你正在专注地学习和磨练技能。一步一个脚印，成功来自日积月累。',meaning_rev:'逆位星币八暗示分心或半途而废。你失去了专注力，工作质量下降。重新集中注意力。'},
+  {id:72,name:'星币九',type:'pentacles',number:9,keywords_up:['丰盛','自足','优雅','独立'],keywords_rev:['依赖','表面丰盛','不安全感','奢侈'],meaning_up:'星币九象征着丰盛、自足和独立的成就。你通过自己的努力获得了舒适的生活。享受这份优雅和独立。',meaning_rev:'逆位星币九暗示表面的丰盛或过度依赖。你可能在物质上富足但内心不安。找到真正的自我价值。'},
+  {id:73,name:'星币十',type:'pentacles',number:10,keywords_up:['财富','家族','传承','长远成功'],keywords_rev:['家道中落','财务损失','分裂','短期思维'],meaning_up:'星币十代表着长远的财富、家族和传承。你不仅是为自己，也在为后代积累。家族的繁荣和稳定。',meaning_rev:'逆位星币十暗示家族财务问题或传承断裂。可能有家道中落或家庭分裂的风险。关注家族和谐。'},
+  {id:74,name:'星币侍从',type:'pentacles',number:11,keywords_up:['专注','学习','实践','新技能'],keywords_rev:['拖延','缺乏进步','不务实','分心'],meaning_up:'星币侍从象征着专注学习和实践。你正在认真钻研一项新技能或学问。脚踏实地，持续进步。',meaning_rev:'逆位星币侍从暗示拖延或缺乏实践。你可能没有专注学习或计划不切实际。回归基础。'},
+  {id:75,name:'星币骑士',type:'pentacles',number:12,keywords_up:['勤勉','可靠','责任','务实'],keywords_rev:['懒惰','固执','倦怠','缺乏远见'],meaning_up:'星币骑士代表着勤勉、可靠和负责任的态度。你是一个值得信赖的人，做事脚踏实地。负责任是最大的财富。',meaning_rev:'逆位星币骑士暗示懒惰或倦怠。你可能失去了动力，工作态度消极。重新找到工作的意义。'},
+  {id:76,name:'星币王后',type:'pentacles',number:13,keywords_up:['滋养','务实','丰裕','母性关怀'],keywords_rev:['忽视','缺乏安全感','依赖物质','窒息感'],meaning_up:'星币王后象征着滋养和丰裕。她用务实的方式照顾他人，提供物质和情感上的支持。享受生活的美好。',meaning_rev:'逆位星币王后暗示过度依赖物质或忽视情感需求。可能给人一种窒息感。找到物质和精神的平衡。'},
+  {id:77,name:'星币国王',type:'pentacles',number:14,keywords_up:['成功','富足','商业头脑','稳定'],keywords_rev:['贪婪','失败','财务管理不善','物质主义'],meaning_up:'星币国王代表着商业上的成功和财务上的富足。你是一个精明稳重的管理者，财富在你的手中稳健增长。',meaning_rev:'逆位星币国王暗示财务管理不善或贪婪。你的物质追求可能让你迷失方向。重新审视价值观。'}
+];
+
+// ── 塔罗实时变量 ──
+var _tarotCards = [];       // 抽到的牌（含正逆位）
+var _tarotSpread = 0;       // 牌阵类型 1/3/5
+var _tarotSessionCode = ''; // 塔罗会话编号
+var _tarotQuestion = '';    // 用户问题
+
+// 重置塔罗状态
+function resetTarot() {
+  _tarotCards = [];
+  _tarotSpread = 0;
+  _tarotSessionCode = '';
+  _tarotQuestion = '';
+  document.getElementById('tarotResultArea').classList.add('hidden');
+  document.getElementById('tarotGuidance').classList.remove('hidden');
+  document.getElementById('tarotCardsCard').style.display = '';
+  document.getElementById('tarotFullResults').classList.add('hidden');
+  document.getElementById('tarotPaywallCard').style.display = '';
+  document.getElementById('tarotPaywallPaidSection').classList.remove('hidden');
+  document.getElementById('tarotUnlockWaiting').classList.add('hidden');
+  document.getElementById('tarotUnlockDone').classList.add('hidden');
+  document.getElementById('tarotPaywallError').textContent = '';
+  document.getElementById('tarotAiCard').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// 抽牌
+function drawTarot(count) {
+  var question = document.getElementById('tarotQuestion').value.trim();
+  _tarotQuestion = question || '';
+  _tarotSpread = count;
+
+  // 从78张牌中随机抽取
+  var pool = TAROT_CARDS.slice();
+  var drawn = [];
+  for (var i = 0; i < count; i++) {
+    var idx = Math.floor(Math.random() * pool.length);
+    var card = pool.splice(idx, 1)[0];
+    // 随机正逆位: true=正位, false=逆位
+    var upright = Math.random() >= 0.5;
+    drawn.push({ card: card, upright: upright });
+  }
+  _tarotCards = drawn;
+
+  // 生成Teaser信息
+  var teaserParts = drawn.map(function(d){
+    return d.card.name + (d.upright ? '🏳' : '🔃');
+  });
+  document.getElementById('tarotTeaserLine').textContent = '抽到: ' + teaserParts.join(' · ');
+  var spreadName = count === 1 ? '单张指引' : (count === 3 ? '三张牌阵' : '五张牌阵');
+  document.getElementById('tarotTeaserSub').textContent = spreadName + (_tarotQuestion ? ' · 问题: ' + _tarotQuestion : '');
+
+  // 渲染牌阵
+  renderTarotCards(drawn, count);
+
+  // 显示塔罗结果区
+  document.getElementById('tarotGuidance').classList.add('hidden');
+  document.getElementById('tarotResultArea').classList.remove('hidden');
+  document.getElementById('tarotCardsCard').style.display = '';
+  document.getElementById('tarotPaywallCard').style.display = '';
+  document.getElementById('tarotPaywallPaidSection').classList.remove('hidden');
+  document.getElementById('tarotUnlockWaiting').classList.add('hidden');
+  document.getElementById('tarotUnlockDone').classList.add('hidden');
+  document.getElementById('tarotFullResults').classList.add('hidden');
+  document.getElementById('tarotAiCard').style.display = 'none';
+
+  // 生成会话编号
+  _tarotSessionCode = genTarotSessionCode();
+  document.getElementById('tarotSessionCodeDisplay').textContent = _tarotSessionCode;
+  document.getElementById('tarotPaidSessionCode').textContent = _tarotSessionCode;
+
+  // 写入Supabase
+  var tarotData = {
+    cards: drawn.map(function(d){ return {id:d.card.id, name:d.card.name, upright:d.upright}; }),
+    spread: count,
+    question: _tarotQuestion
+  };
+  var teaserData = {
+    dm: teaserParts.join(' · '),
+    pattern: spreadName,
+    fav: _tarotQuestion || '未提问题',
+  };
+  postSession(_tarotSessionCode, _tarotQuestion || '匿名', tarotData, teaserData);
+  document.getElementById('tarotResultArea').scrollIntoView({ behavior: 'smooth' });
+}
+
+// 渲染牌阵
+function renderTarotCards(drawn, count) {
+  var area = document.getElementById('tarotCardsArea');
+  var labels = {
+    1: [''],
+    3: ['过去','现在','未来'],
+    5: ['中心(核心)','左上(外在)','右上(希望)','左下(基础)','右下(结果)']
+  };
+  var slotLabels = labels[count] || [];
+
+  var html = '';
+  if (count === 1) {
+    html = '<div class="tarot-layout">';
+    drawn.forEach(function(d, i){
+      html += buildCardSlotHTML(d, i, slotLabels[i] || '');
+    });
+    html += '</div>';
+  } else if (count === 3) {
+    html = '<div class="tarot-layout" style="justify-content:space-around;">';
+    drawn.forEach(function(d, i){
+      html += buildCardSlotHTML(d, i, slotLabels[i] || '');
+    });
+    html += '</div>';
+  } else if (count === 5) {
+    html = '<div class="tarot-layout-5">';
+    var positions = ['slot-center','slot-top-left','slot-top-right','slot-bottom-left','slot-bottom-right'];
+    drawn.forEach(function(d, i){
+      html += '<div class="' + positions[i] + '">' + buildCardSlotHTML(d, i, slotLabels[i] || '') + '</div>';
+    });
+    html += '</div>';
+  }
+  area.innerHTML = html;
+
+  // 预览文字（解锁前可见）
+  var previewHtml = '<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">';
+  drawn.forEach(function(d, i){
+    var posLabel = slotLabels[i] ? '<span style="color:var(--gold);font-size:0.8em;">[' + slotLabels[i] + ']</span> ' : '';
+    var orientation = d.upright ? '🏳 正位' : '🔃 逆位';
+    var kw = d.upright ? d.card.keywords_up : d.card.keywords_rev;
+    previewHtml += '<div style="margin-bottom:8px;font-size:0.85em;">' + posLabel + '<strong style="color:var(--gold-light);">' + d.card.name + '</strong> · ' + orientation + ' · ' + kw.slice(0,3).join('、') + '</div>';
+  });
+  previewHtml += '</div>';
+  document.getElementById('tarotPreviewReading').innerHTML = previewHtml;
+  document.getElementById('tarotPreviewReading').style.display = '';
+}
+
+function buildCardSlotHTML(d, index, label) {
+  var orientation = d.upright ? '🏳 正位' : '🔃 逆位';
+  var oClass = d.upright ? 'upright' : 'reversed';
+  var kw = d.upright ? d.card.keywords_up : d.card.keywords_rev;
+  var html = '<div class="tarot-card-slot" id="tarotSlot' + index + '" onclick="flipTarotCard(' + index + ')">';
+  html += '<div class="tarot-card-back">🃏</div>';
+  html += '<div class="tarot-card-front">';
+  html += '  <div class="card-name">' + d.card.name + '</div>';
+  html += '  <div class="card-orientation ' + oClass + '">' + orientation + '</div>';
+  html += '  <div class="card-keywords">' + kw.slice(0,3).join('、') + '</div>';
+  html += '</div>';
+  if (label) html += '<div class="slot-label">' + label + '</div>';
+  html += '</div>';
+  return html;
+}
+
+// 点击翻转牌
+function flipTarotCard(index) {
+  var slot = document.getElementById('tarotSlot' + index);
+  if (slot) slot.classList.add('flipped');
+}
+
+// 塔罗 - 已付款通知
+function tarotNotifyPaid() {
+  var btn = document.getElementById('tarotBtnPaid');
+  var status = document.getElementById('tarotPaidStatus');
+  if (!_tarotSessionCode) {
+    status.textContent = '⚠ 请先抽牌';
+    status.style.color = '#c0392b';
+    return;
+  }
+  document.getElementById('tarotPaywallPaidSection').classList.add('hidden');
+  document.getElementById('tarotUnlockWaiting').classList.remove('hidden');
+
+  var adminUrl = getAdminUnlockUrl(_tarotSessionCode);
+  var title = '新塔罗订单 - ' + (_tarotQuestion || '匿名');
+  var cardNames = _tarotCards.map(function(d){ return d.card.name + (d.upright?'🏳':'🔃'); }).join('、');
+  var desp = '【新塔罗占卜订单通知】\n'
+    + '问题：' + (_tarotQuestion || '未提问题') + '\n'
+    + '抽牌：' + cardNames + '\n'
+    + '牌阵：' + (_tarotSpread === 1 ? '单张' : _tarotSpread === 3 ? '三张牌阵' : '五张牌阵') + '\n'
+    + '会话编号：' + _tarotSessionCode + '\n'
+    + '---\n'
+    + '点此解锁完整解读（复制链接到浏览器打开）：\n'
+    + adminUrl;
+
+  // 状态改为 paid
+  try {
+    sbUpdate('fortune_sessions', 'session_code', _tarotSessionCode, {status: 'paid'});
+  } catch(_) {}
+
+  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
+  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData
+  }).catch(function(e){
+    console.warn('通知发送（no-cors模式，不影响流程）:', e.message);
+  });
+}
+
+// 塔罗会话编号
+function genTarotSessionCode() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code = '';
+  for (var i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return 'T' + code;
+}
+
+// 塔罗解锁（由轮询触发）
+var _tarotPollTimer = null;
+function startTarotPolling(code) {
+  if (_tarotPollTimer) { clearInterval(_tarotPollTimer); }
+  _tarotPollTimer = setInterval(function(){
+    sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+      .then(function(r){ return r.json(); })
+      .then(function(rows){
+        if (rows && rows.length > 0 && rows[0].status === 'unlocked') {
+          clearInterval(_tarotPollTimer);
+          _tarotPollTimer = null;
+          onTarotUnlocked();
+        }
+      })
+      .catch(function(){});
+  }, 5000);
+}
+
+function onTarotUnlocked() {
+  document.getElementById('tarotUnlockWaiting').classList.add('hidden');
+  document.getElementById('tarotUnlockDone').classList.remove('hidden');
+  document.getElementById('tarotPaywallError').textContent = '';
+  // 塔罗解锁后直接显示结果，不需要姓名验证
+  document.getElementById('tarotPaywallCard').style.display = 'none';
+  document.getElementById('tarotFullResults').classList.remove('hidden');
+  document.getElementById('tarotFullResults').scrollIntoView({ behavior: 'smooth' });
+  // 显示牌面详解
+  renderTarotFullReading();
+  // 生成AI解读
+  setTimeout(generateTarotAIReading, 500);
+}
+
+// 渲染完整牌面详解
+function renderTarotFullReading() {
+  var area = document.getElementById('tarotCardDetails');
+  var labels = {
+    1: [''],
+    3: ['过去','现在','未来'],
+    5: ['核心状况','外在影响','希望与恐惧','基础根基','最终结果']
+  };
+  var slotLabels = labels[_tarotSpread] || [];
+  var html = '';
+  _tarotCards.forEach(function(d, i){
+    var orientation = d.upright ? '🏳 正位' : '🔃 逆位';
+    var oLabel = d.upright ? '正位' : '逆位';
+    var meaning = d.upright ? d.card.meaning_up : d.card.meaning_rev;
+    var kw = d.upright ? d.card.keywords_up : d.card.keywords_rev;
+    var posLabel = slotLabels[i] ? '<span class="detail-pos">[' + slotLabels[i] + ']</span>' : '';
+    var typeLabel = '';
+    if (d.card.type === 'major') typeLabel = '大阿卡纳';
+    else if (d.card.type === 'wands') typeLabel = '权杖';
+    else if (d.card.type === 'cups') typeLabel = '圣杯';
+    else if (d.card.type === 'swords') typeLabel = '宝剑';
+    else if (d.card.type === 'pentacles') typeLabel = '星币';
+
+    html += '<div class="tarot-card-detail">';
+    html += '  <div class="detail-header">';
+    html += '    <span class="detail-name">' + d.card.name + '</span>';
+    html += '    ' + posLabel;
+    html += '    <span class="detail-orientation" style="color:' + (d.upright ? 'var(--gold)' : '#8a5a5a') + '">' + orientation + '</span>';
+    html += '    <span style="font-size:0.7em;color:var(--text-dim);">' + typeLabel + '</span>';
+    html += '  </div>';
+    html += '  <div style="font-size:0.75em;color:var(--text-dim);margin-bottom:4px;">关键词：' + kw.join('、') + '</div>';
+    html += '  <div class="detail-meaning">' + meaning + '</div>';
+    if (_tarotSpread > 1 && slotLabels[i]) {
+      var posMeaning = getPositionMeaning(slotLabels[i], d);
+      html += '  <div style="font-size:0.8em;color:var(--gold-light);margin-top:6px;border-top:1px dashed var(--border);padding-top:6px;"><strong>【' + slotLabels[i] + '】</strong> ' + posMeaning + '</div>';
+    }
+    html += '</div>';
+  });
+  area.innerHTML = html;
+}
+
+function getPositionMeaning(pos, cardData) {
+  var meanings = {
+    '过去': '这张牌代表了已经发生的事件和过往的影响，它们塑造了你当前的处境。',
+    '现在': '这张牌反映了你当前的状况和正在面临的挑战，是你此刻需要关注的核心。',
+    '未来': '这张牌预示了在目前趋势下可能发展的方向，但未来并非注定，你的选择依然重要。',
+    '核心状况': '这是当前问题的核心能量，是你处境的本质所在。',
+    '外在影响': '外部环境或他人对你的影响，是你需要面对的外部因素。',
+    '希望与恐惧': '你内心深处的渴望和担忧，它们正在无形中影响你的决策。',
+    '基础根基': '问题的底层基础和已经拥有的资源，是你的立足之本。',
+    '最终结果': '在目前能量走向下可能达成的结果，但改变始于当下。'
+  };
+  return meanings[pos] || '这张牌在此位置的寓意与周围牌的能量相互影响，共同揭示了问题的全貌。';
+}
+
+// 塔罗AI解读（调DeepSeek）
+function generateTarotAIReading() {
+  document.getElementById('tarotAiCard').style.display = '';
+  document.getElementById('tarotAiStatus').textContent = '⏳ 正在生成综合解读...';
+
+  // 先查缓存
+  var code = _tarotSessionCode;
+  if (!code) { callTarotDeepSeek(); return; }
+
+  sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      if (rows && rows.length > 0 && rows[0].teaser && rows[0].teaser.ai) {
+        document.getElementById('tarotAiContent').innerHTML = rows[0].teaser.ai;
+        document.getElementById('tarotAiStatus').textContent = '✅ 解读完成';
+      } else {
+        callTarotDeepSeek(code);
+      }
+    })
+    .catch(function(){
+      callTarotDeepSeek(code);
+    });
+}
+
+function callTarotDeepSeek(sessionCode) {
+  var spreadName = _tarotSpread === 1 ? '单张指引' : (_tarotSpread === 3 ? '三张牌阵（过去·现在·未来）' : '五张牌阵（深入剖析）');
+  var cardInfo = '';
+  var labels = {1:[''],3:['过去','现在','未来'],5:['核心状况','外在影响','希望与恐惧','基础根基','最终结果']};
+  var slotLabels = labels[_tarotSpread] || [];
+
+  _tarotCards.forEach(function(d, i){
+    var orientation = d.upright ? '正位' : '逆位';
+    var pos = slotLabels[i] ? '（' + slotLabels[i] + '位置）' : '';
+    cardInfo += (i+1) + '. ' + d.card.name + ' ' + orientation + pos + '\n';
+    cardInfo += '   关键词：' + (d.upright ? d.card.keywords_up : d.card.keywords_rev).slice(0,3).join('、') + '\n';
+    cardInfo += '   牌义简述：' + (d.upright ? d.card.meaning_up : d.card.meaning_rev).substring(0, 60) + '...\n';
+  });
+
+  var prompt = '你是一位精通韦特塔罗的资深占卜师。请根据以下塔罗占卜结果为求测者写一份综合运势分析报告。\n\n'
+    + '【占卜信息】\n'
+    + '问题：' + (_tarotQuestion || '未提具体问题，求测者进行开放式占卜') + '\n'
+    + '牌阵类型：' + spreadName + '\n\n'
+    + '【抽牌详情】\n' + cardInfo + '\n'
+    + '请撰写一份300-500字的综合解读，内容包括：\n'
+    + '1. 【整体能量概况】分析牌阵呈现的整体能量和趋势\n'
+    + '2. 【核心启示】指出最重要的牌义和启示\n'
+    + '3. 【具体建议】基于牌阵给求测者的行动建议和指引\n\n'
+    + '要求：\n'
+    + '- 语言温暖有深度，避免迷信表述\n'
+    + '- 结合每张牌的位置含义（过去/现在/未来等）\n'
+    + '- 如果求测者提了具体问题，一定要围绕问题展开分析\n'
+    + '- 使用中文，段落分明';
+
+  fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + DEEPSEEK_KEY
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {role: 'system', content: '你是一位资深塔罗占卜师，精通韦特塔罗牌义。你用温暖而专业的语言为求测者解读塔罗牌阵，给出有价值的建议和指引。'},
+        {role: 'user', content: prompt}
+      ],
+      max_tokens: 2048,
+      temperature: 0.3
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(result){
+    if (result && result.choices && result.choices[0]) {
+      var text = result.choices[0].message.content;
+      // 缓存
+      if (sessionCode) {
+        sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode))
+          .then(function(r){ return r.json(); })
+          .then(function(rows){
+            if (rows && rows.length > 0) {
+              var existing = rows[0].teaser || {};
+              existing.ai = text;
+              sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode), {
+                method: 'PATCH',
+                body: JSON.stringify({teaser: existing}),
+                headers: {'Prefer': 'return=minimal'}
+              }).catch(function(){});
+            }
+          }).catch(function(){});
+      }
+      text = text.replace(/\n\n/g, '</p><p style="margin-bottom:14px;">');
+      text = '<p style="margin-bottom:14px;">' + text + '</p>';
+      document.getElementById('tarotAiContent').innerHTML = text;
+      document.getElementById('tarotAiStatus').textContent = '✅ 解读完成';
+    } else {
+      document.getElementById('tarotAiStatus').textContent = '⚠ 解读暂不可用，请重试';
+    }
+  })
+  .catch(function(err){
+    document.getElementById('tarotAiStatus').textContent = '⚠ 解读加载失败，请刷新重试';
+    console.warn('塔罗解读失败:', err);
+  });
+}
+
+// 初始化塔罗QR码
+function initTarotQR() {
+  try {
+    var saved = localStorage.getItem('fortune_qr');
+    if (saved) {
+      var img = document.getElementById('tarotQrImage');
+      if (img) {
+        img.src = saved;
+        img.style.display = '';
+      }
+    }
+  } catch(_) {}
+}
+
+// 修改 startStatusPolling 也支持塔罗
+var _origStartPolling = startStatusPolling;
+startStatusPolling = function(code) {
+  _origStartPolling(code);
+  // 如果是塔罗服务，同时启动塔罗轮询
+  if (_currentService === 'tarot') {
+    startTarotPolling(code);
+  }
+};
 </script>
 
 </body>

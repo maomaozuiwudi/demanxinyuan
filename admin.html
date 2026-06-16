@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>算命管理 · 解锁面板</title>
+<title>科学宝典 · 管理面板</title>
 <style>
 :root {
   --bg:#1a0a0a; --card:#2a1215; --gold:#c9a96e; --gold-light:#e0d0a0;
@@ -138,6 +138,19 @@ body {
 }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
+.filter-bar {
+  display: flex; gap: 8px;
+  max-width: 480px; margin: 0 auto 12px;
+  align-items: center;
+}
+.filter-bar select {
+  flex:1; padding: 8px 12px;
+  background:#1a0d0f; border:1px solid var(--border);
+  border-radius:4px; color:var(--text-light); font-size:0.8em; font-family:inherit;
+}
+.filter-bar label {
+  color: var(--text-dim); font-size: 0.75em; white-space: nowrap;
+}
 .last-update {
   font-size: 0.65em;
   color: var(--text-dim);
@@ -166,6 +179,15 @@ body {
 <div class="status-bar" id="statusBar" style="display:none">
   <span class="dot" id="statusDot"></span>
   <span id="statusText">等待连接…</span>
+</div>
+
+<div class="filter-bar">
+  <label>服务:</label>
+  <select id="serviceFilter" onchange="loadSessions()">
+    <option value="all">全部服务</option>
+    <option value="bazi">🔮 八字批命</option>
+    <option value="tarot">🃏 塔罗占卜</option>
+  </select>
 </div>
 
 <div class="session-list" id="sessionList">
@@ -232,8 +254,12 @@ document.addEventListener('click', function(){ beepOk = true; }, {once:true});
 
 // ── 加载订单列表 ──
 function loadSessions() {
-  // 拉100条确保 paid 待处理订单不会被挤出去
-  sbFetch('/rest/v1/fortune_sessions?order=created_at.desc&limit=100')
+  var filter = document.getElementById('serviceFilter').value;
+  var url = '/rest/v1/fortune_sessions?order=created_at.desc&limit=100';
+  if (filter !== 'all') {
+    url += '&service_type=eq.' + encodeURIComponent(filter);
+  }
+  sbFetch(url)
     .then(function(r){ return r.json(); })
     .then(function(rows){
       renderSessions(rows);
@@ -273,10 +299,11 @@ function renderSessions(sessions) {
     var teaser = s.teaser || {};
     var birthStr = birth.year ? birth.year + '-' + birth.month + '-' + birth.day : '?';
     if (s.code && !s.session_code) s.session_code = s.code;
+    var serviceIcon = s.service_type === 'tarot' ? '🃏' : '🔮';
     card.innerHTML =
       '<div class="session-info">' +
         '<div class="session-code">' + esc(s.session_code) + '</div>' +
-        '<div class="session-detail">' + esc(s.name||'匿名') + ' · ' + esc(birthStr) + ' · ' + esc(teaser.dm||'?') + '</div>' +
+        '<div class="session-detail">' + serviceIcon + ' ' + esc(s.name||'匿名') + ' · ' + esc(birthStr) + ' · ' + esc(teaser.dm||'?') + '</div>' +
         '<div class="session-detail">' + esc(teaser.pattern||'') + ' · 喜' + esc(teaser.fav||'?') + '</div>' +
         '<div class="session-time">' + getElapsed(s.created_at) + '</div>' +
       '</div>' +
@@ -292,10 +319,11 @@ function renderSessions(sessions) {
     var teaser = s.teaser || {};
     var birthStr = birth.year ? birth.year + '-' + birth.month + '-' + birth.day : '?';
     if (s.code && !s.session_code) s.session_code = s.code;
+    var serviceIcon = s.service_type === 'tarot' ? '🃏' : '🔮';
     card.innerHTML =
       '<div class="session-info">' +
         '<div class="session-code" style="color:#e0b040">' + esc(s.session_code) + ' 💰</div>' +
-        '<div class="session-detail">' + esc(s.name||'匿名') + ' · ' + esc(birthStr) + ' · ' + esc(teaser.dm||'?') + '</div>' +
+        '<div class="session-detail">' + serviceIcon + ' ' + esc(s.name||'匿名') + ' · ' + esc(birthStr) + ' · ' + esc(teaser.dm||'?') + '</div>' +
         '<div class="session-detail" style="color:#e0b040;font-size:0.7em">已付款 · 待解锁</div>' +
       '</div>' +
       '<div class="session-action"><button class="btn-unlock" onclick="doUnlock(\'' + esc(s.session_code) + '\', this)">🔓 解锁</button></div>';
@@ -311,10 +339,11 @@ function renderSessions(sessions) {
       var card = document.createElement('div'); card.className = 'session-card'; card.style.opacity = '0.5';
       var teaser = s.teaser || {};
       if (s.code && !s.session_code) s.session_code = s.code;
+      var serviceIcon = s.service_type === 'tarot' ? '🃏' : '🔮';
       card.innerHTML =
         '<div class="session-info">' +
           '<div class="session-code" style="color:var(--green)">' + esc(s.session_code) + ' ✓</div>' +
-          '<div class="session-detail">' + esc(s.name||'匿名') + ' · ' + esc(teaser.dm||'?') + '</div>' +
+          '<div class="session-detail">' + serviceIcon + ' ' + esc(s.name||'匿名') + ' · ' + esc(teaser.dm||'?') + '</div>' +
         '</div>' +
         '<div class="session-action"><button class="btn-unlock unlocked" disabled>已解锁</button></div>';
       frag.appendChild(card);
