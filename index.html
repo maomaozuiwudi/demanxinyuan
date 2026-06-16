@@ -2174,16 +2174,9 @@ async function notifyPaid() {
     sbUpdate('fortune_sessions', 'session_code', _currentSessionCode, {status: 'paid'});
   } catch(_) {}
 
-  // 后台发通知（no-cors模式绕过浏览器CORS限制）
-  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
-  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: formData
-  }).catch(function(e){
-    console.warn('通知发送（no-cors模式，不影响流程）:', e.message);
-  });
+  // 后台发通知（图片信标GET绕过CORS限制）
+  var img = new Image();
+  img.src = 'https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send?title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
 }
 
 function genSessionCode() {
@@ -2895,15 +2888,8 @@ function tarotNotifyPaid() {
     sbUpdate('fortune_sessions', 'session_code', _tarotSessionCode, {status: 'paid'});
   } catch(_) {}
 
-  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
-  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: formData
-  }).catch(function(e){
-    console.warn('通知发送（no-cors模式，不影响流程）:', e.message);
-  });
+  var img = new Image();
+  img.src = 'https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send?title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
 }
 
 // 塔罗会话编号
@@ -3224,12 +3210,8 @@ function dreamNotifyPaid() {
     + '点此解锁完整解读（复制链接到浏览器打开）：\n' + adminUrl;
 
   try { sbUpdate('fortune_sessions', 'session_code', _dreamSessionCode, {status: 'paid'}); } catch(_) {}
-  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
-  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
-    method: 'POST', mode: 'no-cors',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: formData
-  }).catch(function(e){ console.warn('通知发送:', e.message); });
+  var img = new Image();
+  img.src = 'https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send?title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
 }
 
 function startDreamPolling(code) {
@@ -3652,12 +3634,8 @@ function wordNotifyPaid() {
     + '点此解锁完整分析（复制链接到浏览器打开）：\n' + adminUrl;
 
   try { sbUpdate('fortune_sessions', 'session_code', _wordSessionCode, {status: 'paid'}); } catch(_) {}
-  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
-  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
-    method: 'POST', mode: 'no-cors',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: formData
-  }).catch(function(e){ console.warn('通知发送:', e.message); });
+  var img = new Image();
+  img.src = 'https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send?title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
 }
 
 function startWordPolling(code) {
@@ -3977,12 +3955,8 @@ function phoneNotifyPaid() {
     + '点此解锁完整分析（复制链接到浏览器打开）：\n' + adminUrl;
 
   try { sbUpdate('fortune_sessions', 'session_code', _phoneSessionCode, {status: 'paid'}); } catch(_) {}
-  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
-  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
-    method: 'POST', mode: 'no-cors',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: formData
-  }).catch(function(e){ console.warn('通知发送:', e.message); });
+  var img = new Image();
+  img.src = 'https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send?title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
 }
 
 function startPhonePolling(code) {
