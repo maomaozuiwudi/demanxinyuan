@@ -260,7 +260,10 @@ function loadSessions() {
     url += '&service_type=eq.' + encodeURIComponent(filter);
   }
   sbFetch(url)
-    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
     .then(function(rows){
       renderSessions(rows);
       _lastRefreshTime = new Date();
@@ -269,9 +272,16 @@ function loadSessions() {
       document.getElementById('statusDot').className = 'dot dot-live';
       document.getElementById('statusText').textContent = '已连接';
     })
-    .catch(function(){
-      document.getElementById('statusDot').className = 'dot dot-dead';
-      document.getElementById('statusText').textContent = '连接失败';
+    .catch(function(e){
+      // 如果带filter失败（可能是service_type字段不存在），回退到全部
+      if (filter !== 'all') {
+        console.warn('按类型查询失败，回退到全部:', e.message);
+        document.getElementById('serviceFilter').value = 'all';
+        loadSessions();
+      } else {
+        document.getElementById('statusDot').className = 'dot dot-dead';
+        document.getElementById('statusText').textContent = '连接失败';
+      }
     });
 }
 

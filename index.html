@@ -1888,18 +1888,29 @@ function esc(s) {
 
 // 写订单到Supabase + 开始轮询解锁状态
 function postSession(code, name, birth, teaser) {
-  sbInsert('fortune_sessions', {
+  var data = {
     session_code: code,
     name: name,
     birth_json: birth,
     teaser: teaser,
-    service_type: _currentService || 'bazi',
     status: 'pending'
-  }).then(function(){
+  };
+  // 尝试带 service_type 写入，如果列不存在自动回退
+  var svc = _currentService || 'bazi';
+  data.service_type = svc;
+  sbInsert('fortune_sessions', data).then(function(r){
+    // 如果返回空或报错，可能是列不存在，去掉重试
+    if (!r || r.error) throw new Error(r ? r.error.message : 'empty');
     startStatusPolling(code);
   }).catch(function(e){
-    console.warn('Supabase写入失败，走本地模式:', e.message);
-    // 本地模式：每5秒轮询admin.html的解锁状态（没有后台，等用户手动确认）
+    console.warn('带类型写入失败，尝试不带service_type:', e.message);
+    delete data.service_type;
+    sbInsert('fortune_sessions', data).then(function(){
+      startStatusPolling(code);
+    }).catch(function(e2){
+      console.warn('Supabase写入失败，走本地模式:', e2.message);
+      // 本地模式
+    });
   });
 }
 
