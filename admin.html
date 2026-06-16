@@ -187,6 +187,9 @@ body {
     <option value="all">全部服务</option>
     <option value="bazi">🔮 八字批命</option>
     <option value="tarot">🃏 塔罗占卜</option>
+    <option value="dream">🌙 周公解梦</option>
+    <option value="word">📝 姓名测字</option>
+    <option value="phone">📱 手机号吉凶</option>
   </select>
 </div>
 
@@ -309,7 +312,8 @@ function renderSessions(sessions) {
     var teaser = s.teaser || {};
     var birthStr = birth.year ? birth.year + '-' + birth.month + '-' + birth.day : '?';
     if (s.code && !s.session_code) s.session_code = s.code;
-    var serviceIcon = s.service_type === 'tarot' ? '🃏' : '🔮';
+    var iconMap = {'tarot':'🃏','dream':'🌙','word':'📝','phone':'📱'};
+    var serviceIcon = iconMap[s.service_type] || '🔮';
     card.innerHTML =
       '<div class="session-info">' +
         '<div class="session-code">' + esc(s.session_code) + '</div>' +
@@ -329,7 +333,8 @@ function renderSessions(sessions) {
     var teaser = s.teaser || {};
     var birthStr = birth.year ? birth.year + '-' + birth.month + '-' + birth.day : '?';
     if (s.code && !s.session_code) s.session_code = s.code;
-    var serviceIcon = s.service_type === 'tarot' ? '🃏' : '🔮';
+    var iconMap = {'tarot':'🃏','dream':'🌙','word':'📝','phone':'📱'};
+    var serviceIcon = iconMap[s.service_type] || '🔮';
     card.innerHTML =
       '<div class="session-info">' +
         '<div class="session-code" style="color:#e0b040">' + esc(s.session_code) + ' 💰</div>' +
@@ -349,7 +354,8 @@ function renderSessions(sessions) {
       var card = document.createElement('div'); card.className = 'session-card'; card.style.opacity = '0.5';
       var teaser = s.teaser || {};
       if (s.code && !s.session_code) s.session_code = s.code;
-      var serviceIcon = s.service_type === 'tarot' ? '🃏' : '🔮';
+      var iconMap = {'tarot':'🃏','dream':'🌙','word':'📝','phone':'📱'};
+      var serviceIcon = iconMap[s.service_type] || '🔮';
       card.innerHTML =
         '<div class="session-info">' +
           '<div class="session-code" style="color:var(--green)">' + esc(s.session_code) + ' ✓</div>' +

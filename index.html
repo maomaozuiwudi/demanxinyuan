@@ -773,8 +773,9 @@ function startStatusPolling(code) {
 <div class="service-tabs" id="serviceTabs">
   <button class="service-tab active" data-service="bazi" onclick="switchService('bazi')">🔮 八字批命</button>
   <button class="service-tab" data-service="tarot" onclick="switchService('tarot')">🃏 塔罗占卜</button>
-  <button class="service-tab" data-service="dream" onclick="switchService('dream')" style="opacity:0.5">🌙 解梦(待)</button>
-  <button class="service-tab" data-service="word" onclick="switchService('word')" style="opacity:0.5">📝 测字(待)</button>
+  <button class="service-tab" data-service="dream" onclick="switchService('dream')">🌙 周公解梦</button>
+  <button class="service-tab" data-service="word" onclick="switchService('word')">📝 姓名测字</button>
+  <button class="service-tab" data-service="phone" onclick="switchService('phone')">📱 手机号吉凶</button>
 </div>
 
 <!-- ═══════════ 八字批命服务 ═══════════ -->
@@ -1121,6 +1122,321 @@ function startStatusPolling(code) {
   </div><!-- end #tarotResultArea -->
 
 </div><!-- end #tarotSection -->
+
+<!-- ═══════════ 周公解梦服务 ═══════════ -->
+<div class="service-section hidden" data-service="dream" id="dreamSection">
+
+  <!-- 解梦指引区 -->
+  <div class="card dream-guidance" id="dreamGuidance">
+    <h2>🌙 周公解梦</h2>
+    <div class="subtitle">梦境蕴含深意，解你所梦</div>
+    <div class="instruction">
+      描述你梦到的场景、人物和情节，越详细解读越准确
+    </div>
+    <div class="form-group">
+      <label>梦境描述</label>
+      <textarea id="dreamInput" rows="4" style="width:100%;padding:10px 14px;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:1em;font-family:inherit;resize:vertical;" placeholder="例如：我梦见自己在天上飞，下面是金色的麦田..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>醒后感觉</label>
+      <select id="dreamFeeling">
+        <option value="恐惧">😨 恐惧</option>
+        <option value="困惑">🤔 困惑</option>
+        <option value="喜悦">😊 喜悦</option>
+        <option value="悲伤">😢 悲伤</option>
+        <option value="平静">😌 平静</option>
+        <option value="其他">🤷 其他</option>
+      </select>
+    </div>
+    <button class="btn" onclick="submitDream()" style="margin-top:8px;">🌙 解 读 梦 境</button>
+  </div>
+
+  <!-- 解梦结果区 -->
+  <div id="dreamResultArea" class="hidden">
+
+    <!-- 梦境预览展示 -->
+    <div class="card" id="dreamPreviewCard">
+      <div class="section-title">🌙 梦境解析</div>
+      <div class="dream-preview-content" id="dreamPreviewContent">
+        <div class="dream-keywords" id="dreamKeywords"></div>
+        <div class="dream-brief" id="dreamBrief"></div>
+      </div>
+    </div>
+
+    <!-- 付费解锁墙（共用模式） -->
+    <div class="card" id="dreamPaywallCard">
+      <div class="paywall-icon">🔒</div>
+      <div class="paywall-title">支 付 后 解 锁 完 整 解 读</div>
+
+      <!-- 解梦预览 -->
+      <div class="paywall-teaser" id="dreamPaywallTeaser">
+        <div class="teaser-highlight" id="dreamTeaserLine"></div>
+        <div id="dreamTeaserSub"></div>
+      </div>
+
+      <!-- 收款码 -->
+      <div class="section-title" style="display:inline-block;margin-bottom:8px;">微信扫码支付</div>
+      <div class="qr-wrapper" id="dreamQrWrapper" style="margin:0 auto;">
+        <a href="pay_qr.jpg" target="_blank">
+          <img id="dreamQrImage" src="pay_qr.jpg" alt="收款码" class="qr-img" style="cursor:pointer;">
+        </a>
+      </div>
+      <div style="color:var(--text-dim);font-size:0.8em;margin:8px 0;">命理分析 · 随缘随喜</div>
+      <div style="color:var(--text-dim);font-size:0.7em;margin:4px 0;">👆 点击收款码放大 → 长按识别图中二维码</div>
+      <div style="color:#c0392b;font-size:0.75em;margin:8px 0 0;border:1px dashed rgba(192,57,43,0.3);border-radius:4px;padding:6px 10px;background:rgba(192,57,43,0.05);">⚠️ 每日凌晨 1:00 — 上午 9:00 摊主休息，请勿付款</div>
+      <div style="color:var(--text-dim);font-size:0.75em;margin:8px 0;border:1px solid var(--border);border-radius:6px;padding:8px;background:rgba(255,255,255,0.03);">💡 退出保存图片去付款？没关系<br>回来输入同样梦境即可继续解锁</div>
+
+      <!-- 我已付款 + 远程解锁 -->
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+        <div id="dreamPaywallPaidSection">
+          <button class="btn" id="dreamBtnPaid" onclick="dreamNotifyPaid()"
+            style="max-width:280px;margin:0 auto;font-size:1em;padding:12px;">💰 我 已 付 款</button>
+          <div style="color:var(--text-dim);font-size:0.7em;margin-top:6px;">
+            点击后通知摊主解锁 · <span id="dreamPaidSessionCode" style="color:var(--gold);font-family:monospace;">---</span>
+          </div>
+          <div id="dreamPaidStatus" style="font-size:0.8em;margin-top:8px;min-height:1.2em;"></div>
+        </div>
+
+        <div class="unlock-waiting hidden" id="dreamUnlockWaiting">
+          <div class="waiting-spinner"></div>
+          <div style="color:var(--gold-light);margin:8px 0;">等待摊主确认支付…</div>
+          <div style="color:var(--text-dim);font-size:0.7em;">完整解读将在解锁后自动显示</div>
+          <div style="color:var(--text-dim);font-size:0.65em;margin-top:6px;">会话编号: <span id="dreamSessionCodeDisplay" style="color:var(--gold);font-family:monospace;">---</span></div>
+        </div>
+
+        <div class="unlock-done hidden" id="dreamUnlockDone">
+          <div style="color:var(--green);font-size:1.2em;">✅ 支付已确认，解读已解锁</div>
+        </div>
+
+        <div id="dreamPaywallError"></div>
+      </div>
+    </div>
+
+    <!-- 完整解读（解锁后） -->
+    <div id="dreamFullResults" class="hidden">
+      <div class="card result-card">
+        <div class="section-title">🌙 梦象解析</div>
+        <div id="dreamAnalysis"></div>
+      </div>
+      <div class="card result-card" id="dreamAiCard" style="display:none;">
+        <div class="section-title">📜 综合解读</div>
+        <div class="dream-ai-reading" id="dreamAiReading">
+          <div class="title">🤖 AI 梦境解读</div>
+          <div id="dreamAiContent">正在生成解读...</div>
+        </div>
+        <div style="text-align:center;color:var(--text-dim);font-size:0.75em;margin-top:4px;" id="dreamAiStatus"></div>
+      </div>
+      <div style="max-width:540px;margin:0 auto;">
+        <button class="btn" onclick="resetDream()">↩ 重新解梦</button>
+      </div>
+    </div>
+
+  </div><!-- end #dreamResultArea -->
+
+</div><!-- end #dreamSection -->
+
+<!-- ═══════════ 姓名测字服务 ═══════════ -->
+<div class="service-section hidden" data-service="word" id="wordSection">
+
+  <!-- 测字指引区 -->
+  <div class="card word-guidance" id="wordGuidance">
+    <h2>📝 姓名测字</h2>
+    <div class="subtitle">姓名蕴含五行数理，测你运势</div>
+    <div class="instruction">
+      输入你的姓名，系统将根据五格数理和笔画分析运势
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>姓氏</label>
+        <input type="text" id="wordLastName" placeholder="如：张、李、王" maxlength="10">
+      </div>
+      <div class="form-group">
+        <label>名字</label>
+        <input type="text" id="wordFirstName" placeholder="如：三、小明" maxlength="10">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>性别</label>
+      <select id="wordGender">
+        <option value="male">男</option>
+        <option value="female">女</option>
+      </select>
+    </div>
+    <button class="btn" onclick="submitWord()" style="margin-top:8px;">📝 开 始 测 名</button>
+  </div>
+
+  <!-- 测字结果区 -->
+  <div id="wordResultArea" class="hidden">
+
+    <!-- 五格预览展示 -->
+    <div class="card" id="wordPreviewCard">
+      <div class="section-title">📝 姓名数理</div>
+      <div class="word-grid-preview" id="wordGridPreview"></div>
+    </div>
+
+    <!-- 付费解锁墙 -->
+    <div class="card" id="wordPaywallCard">
+      <div class="paywall-icon">🔒</div>
+      <div class="paywall-title">支 付 后 解 锁 完 整 分 析</div>
+
+      <div class="paywall-teaser" id="wordPaywallTeaser">
+        <div class="teaser-highlight" id="wordTeaserLine"></div>
+        <div id="wordTeaserSub"></div>
+      </div>
+
+      <div class="section-title" style="display:inline-block;margin-bottom:8px;">微信扫码支付</div>
+      <div class="qr-wrapper" id="wordQrWrapper" style="margin:0 auto;">
+        <a href="pay_qr.jpg" target="_blank">
+          <img id="wordQrImage" src="pay_qr.jpg" alt="收款码" class="qr-img" style="cursor:pointer;">
+        </a>
+      </div>
+      <div style="color:var(--text-dim);font-size:0.8em;margin:8px 0;">命理分析 · 随缘随喜</div>
+      <div style="color:var(--text-dim);font-size:0.7em;margin:4px 0;">👆 点击收款码放大 → 长按识别图中二维码</div>
+      <div style="color:#c0392b;font-size:0.75em;margin:8px 0 0;border:1px dashed rgba(192,57,43,0.3);border-radius:4px;padding:6px 10px;background:rgba(192,57,43,0.05);">⚠️ 每日凌晨 1:00 — 上午 9:00 摊主休息，请勿付款</div>
+      <div style="color:var(--text-dim);font-size:0.75em;margin:8px 0;border:1px solid var(--border);border-radius:6px;padding:8px;background:rgba(255,255,255,0.03);">💡 退出保存图片去付款？没关系<br>回来输入同样姓名即可继续解锁</div>
+
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+        <div id="wordPaywallPaidSection">
+          <button class="btn" id="wordBtnPaid" onclick="wordNotifyPaid()"
+            style="max-width:280px;margin:0 auto;font-size:1em;padding:12px;">💰 我 已 付 款</button>
+          <div style="color:var(--text-dim);font-size:0.7em;margin-top:6px;">
+            点击后通知摊主解锁 · <span id="wordPaidSessionCode" style="color:var(--gold);font-family:monospace;">---</span>
+          </div>
+          <div id="wordPaidStatus" style="font-size:0.8em;margin-top:8px;min-height:1.2em;"></div>
+        </div>
+
+        <div class="unlock-waiting hidden" id="wordUnlockWaiting">
+          <div class="waiting-spinner"></div>
+          <div style="color:var(--gold-light);margin:8px 0;">等待摊主确认支付…</div>
+          <div style="color:var(--text-dim);font-size:0.7em;">完整分析将在解锁后自动显示</div>
+          <div style="color:var(--text-dim);font-size:0.65em;margin-top:6px;">会话编号: <span id="wordSessionCodeDisplay" style="color:var(--gold);font-family:monospace;">---</span></div>
+        </div>
+
+        <div class="unlock-done hidden" id="wordUnlockDone">
+          <div style="color:var(--green);font-size:1.2em;">✅ 支付已确认，分析已解锁</div>
+        </div>
+
+        <div id="wordPaywallError"></div>
+      </div>
+    </div>
+
+    <!-- 完整分析（解锁后） -->
+    <div id="wordFullResults" class="hidden">
+      <div class="card result-card">
+        <div class="section-title">📝 五格详析</div>
+        <div id="wordGridDetail"></div>
+      </div>
+      <div class="card result-card" id="wordAiCard" style="display:none;">
+        <div class="section-title">📜 AI 姓名学分析</div>
+        <div class="word-ai-reading" id="wordAiReading">
+          <div class="title">🤖 AI 姓名解读</div>
+          <div id="wordAiContent">正在生成解读...</div>
+        </div>
+        <div style="text-align:center;color:var(--text-dim);font-size:0.75em;margin-top:4px;" id="wordAiStatus"></div>
+      </div>
+      <div style="max-width:540px;margin:0 auto;">
+        <button class="btn" onclick="resetWord()">↩ 重新测名</button>
+      </div>
+    </div>
+
+  </div><!-- end #wordResultArea -->
+
+</div><!-- end #wordSection -->
+
+<!-- ═══════════ 手机号吉凶服务 ═══════════ -->
+<div class="service-section hidden" data-service="phone" id="phoneSection">
+
+  <!-- 手机号指引区 -->
+  <div class="card phone-guidance" id="phoneGuidance">
+    <h2>📱 手机号吉凶</h2>
+    <div class="subtitle">数字磁场影响运势</div>
+    <div class="instruction">
+      输入你的手机号，分析数字能量和吉凶
+    </div>
+    <div class="form-group">
+      <label>手机号码</label>
+      <input type="tel" id="phoneInput" maxlength="11" placeholder="输入11位手机号" style="width:100%;padding:10px 14px;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;color:var(--text-light);font-size:1.2em;font-family:monospace;letter-spacing:0.2em;text-align:center;">
+    </div>
+    <button class="btn" onclick="submitPhone()" style="margin-top:8px;">📱 分 析 号 码</button>
+  </div>
+
+  <!-- 手机号结果区 -->
+  <div id="phoneResultArea" class="hidden">
+
+    <!-- 预览展示 -->
+    <div class="card" id="phonePreviewCard">
+      <div class="section-title">📱 数字能量</div>
+      <div class="phone-preview-content" id="phonePreviewContent"></div>
+    </div>
+
+    <!-- 付费解锁墙 -->
+    <div class="card" id="phonePaywallCard">
+      <div class="paywall-icon">🔒</div>
+      <div class="paywall-title">支 付 后 解 锁 完 整 分 析</div>
+
+      <div class="paywall-teaser" id="phonePaywallTeaser">
+        <div class="teaser-highlight" id="phoneTeaserLine"></div>
+        <div id="phoneTeaserSub"></div>
+      </div>
+
+      <div class="section-title" style="display:inline-block;margin-bottom:8px;">微信扫码支付</div>
+      <div class="qr-wrapper" id="phoneQrWrapper" style="margin:0 auto;">
+        <a href="pay_qr.jpg" target="_blank">
+          <img id="phoneQrImage" src="pay_qr.jpg" alt="收款码" class="qr-img" style="cursor:pointer;">
+        </a>
+      </div>
+      <div style="color:var(--text-dim);font-size:0.8em;margin:8px 0;">命理分析 · 随缘随喜</div>
+      <div style="color:var(--text-dim);font-size:0.7em;margin:4px 0;">👆 点击收款码放大 → 长按识别图中二维码</div>
+      <div style="color:#c0392b;font-size:0.75em;margin:8px 0 0;border:1px dashed rgba(192,57,43,0.3);border-radius:4px;padding:6px 10px;background:rgba(192,57,43,0.05);">⚠️ 每日凌晨 1:00 — 上午 9:00 摊主休息，请勿付款</div>
+      <div style="color:var(--text-dim);font-size:0.75em;margin:8px 0;border:1px solid var(--border);border-radius:6px;padding:8px;background:rgba(255,255,255,0.03);">💡 退出保存图片去付款？没关系<br>回来输入同样号码即可继续解锁</div>
+
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+        <div id="phonePaywallPaidSection">
+          <button class="btn" id="phoneBtnPaid" onclick="phoneNotifyPaid()"
+            style="max-width:280px;margin:0 auto;font-size:1em;padding:12px;">💰 我 已 付 款</button>
+          <div style="color:var(--text-dim);font-size:0.7em;margin-top:6px;">
+            点击后通知摊主解锁 · <span id="phonePaidSessionCode" style="color:var(--gold);font-family:monospace;">---</span>
+          </div>
+          <div id="phonePaidStatus" style="font-size:0.8em;margin-top:8px;min-height:1.2em;"></div>
+        </div>
+
+        <div class="unlock-waiting hidden" id="phoneUnlockWaiting">
+          <div class="waiting-spinner"></div>
+          <div style="color:var(--gold-light);margin:8px 0;">等待摊主确认支付…</div>
+          <div style="color:var(--text-dim);font-size:0.7em;">完整分析将在解锁后自动显示</div>
+          <div style="color:var(--text-dim);font-size:0.65em;margin-top:6px;">会话编号: <span id="phoneSessionCodeDisplay" style="color:var(--gold);font-family:monospace;">---</span></div>
+        </div>
+
+        <div class="unlock-done hidden" id="phoneUnlockDone">
+          <div style="color:var(--green);font-size:1.2em;">✅ 支付已确认，分析已解锁</div>
+        </div>
+
+        <div id="phonePaywallError"></div>
+      </div>
+    </div>
+
+    <!-- 完整分析（解锁后） -->
+    <div id="phoneFullResults" class="hidden">
+      <div class="card result-card">
+        <div class="section-title">📱 数字能量详析</div>
+        <div id="phoneEnergyDetail"></div>
+      </div>
+      <div class="card result-card" id="phoneAiCard" style="display:none;">
+        <div class="section-title">📜 AI 数字能量分析</div>
+        <div class="phone-ai-reading" id="phoneAiReading">
+          <div class="title">🤖 AI 综合解读</div>
+          <div id="phoneAiContent">正在生成解读...</div>
+        </div>
+        <div style="text-align:center;color:var(--text-dim);font-size:0.75em;margin-top:4px;" id="phoneAiStatus"></div>
+      </div>
+      <div style="max-width:540px;margin:0 auto;">
+        <button class="btn" onclick="resetPhone()">↩ 重新分析</button>
+      </div>
+    </div>
+
+  </div><!-- end #phoneResultArea -->
+
+</div><!-- end #phoneSection -->
 
 <div class="footer">科学宝典 · 所有数据仅供参考 · 结果由AI生成</div>
 
@@ -2802,15 +3118,1064 @@ function initTarotQR() {
   } catch(_) {}
 }
 
-// 修改 startStatusPolling 也支持塔罗
+// 修改 startStatusPolling 支持所有服务
 var _origStartPolling = startStatusPolling;
 startStatusPolling = function(code) {
   _origStartPolling(code);
-  // 如果是塔罗服务，同时启动塔罗轮询
   if (_currentService === 'tarot') {
     startTarotPolling(code);
+  } else if (_currentService === 'dream') {
+    startDreamPolling(code);
+  } else if (_currentService === 'word') {
+    startWordPolling(code);
+  } else if (_currentService === 'phone') {
+    startPhonePolling(code);
   }
 };
+
+// ═══════════════ 周公解梦 ═══════════════
+
+var _dreamSessionCode = '';
+var _dreamDescription = '';
+var _dreamFeeling = '';
+var _dreamPollTimer = null;
+
+function submitDream() {
+  var desc = document.getElementById('dreamInput').value.trim();
+  var feeling = document.getElementById('dreamFeeling').value;
+  if (!desc || desc.length < 4) {
+    alert('请至少输入4个字的梦境描述');
+    return;
+  }
+
+  _dreamDescription = desc;
+  _dreamFeeling = feeling;
+
+  // 提取前3个关键词（取前30字中的3个短词）
+  var keywords = extractDreamKeywords(desc);
+  document.getElementById('dreamKeywords').innerHTML = '<strong>梦境关键词：</strong>' + keywords.map(function(k){return '「' + k + '」';}).join(' ');
+  document.getElementById('dreamBrief').textContent = '梦境暗示着内心深处的某种情感或想法，完整解读请解锁查看。';
+
+  // 设置Teaser
+  var teaserLine = '梦境关键词：' + keywords.slice(0,3).join('、');
+  var teaserSub = '感觉：' + feeling;
+  document.getElementById('dreamTeaserLine').textContent = teaserLine;
+  document.getElementById('dreamTeaserSub').textContent = teaserSub;
+
+  // 生成会话编号
+  _dreamSessionCode = genDreamSessionCode();
+  document.getElementById('dreamSessionCodeDisplay').textContent = _dreamSessionCode;
+  document.getElementById('dreamPaidSessionCode').textContent = _dreamSessionCode;
+
+  // 切换视图
+  document.getElementById('dreamGuidance').classList.add('hidden');
+  document.getElementById('dreamResultArea').classList.remove('hidden');
+  document.getElementById('dreamPreviewCard').style.display = '';
+  document.getElementById('dreamPaywallCard').style.display = '';
+  document.getElementById('dreamPaywallPaidSection').classList.remove('hidden');
+  document.getElementById('dreamUnlockWaiting').classList.add('hidden');
+  document.getElementById('dreamUnlockDone').classList.add('hidden');
+  document.getElementById('dreamFullResults').classList.add('hidden');
+  document.getElementById('dreamAiCard').style.display = 'none';
+
+  // 写入Supabase
+  var teaserData = {dm: teaserLine, pattern: '解梦', fav: feeling};
+  var dreamData = {description: desc.substring(0,50), feeling: feeling};
+  postSession(_dreamSessionCode, desc.substring(0,20), dreamData, teaserData);
+  document.getElementById('dreamResultArea').scrollIntoView({behavior:'smooth'});
+}
+
+function extractDreamKeywords(text) {
+  // 简单抽取：取前30字，按常见梦境用词截取
+  var raw = text.substring(0, 30);
+  var common = ['飞','梦','见','看','到','在','了','天','上','水','火','人','家','走','跑','追','逃','哭','笑','爱','恨','怕','黑','白','大','小','高','低','远','近','金','木','山','海','河','鱼','鸟','花','树','光','暗','龙','凤','鬼','神','佛','仙','桥','路','门','窗','雨','雪','风','云','月','日','星'];
+  var found = [];
+  for (var i = 0; i < common.length && found.length < 3; i++) {
+    if (raw.indexOf(common[i]) >= 0) {
+      found.push(common[i]);
+    }
+  }
+  if (found.length === 0) {
+    found = ['梦境','心象','潜意识'];
+  }
+  return found;
+}
+
+function genDreamSessionCode() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code = '';
+  for (var i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return 'D' + code;
+}
+
+function dreamNotifyPaid() {
+  var btn = document.getElementById('dreamBtnPaid');
+  var status = document.getElementById('dreamPaidStatus');
+  if (!_dreamSessionCode) { status.textContent = '⚠ 请先解读梦境'; status.style.color = '#c0392b'; return; }
+  document.getElementById('dreamPaywallPaidSection').classList.add('hidden');
+  document.getElementById('dreamUnlockWaiting').classList.remove('hidden');
+
+  var adminUrl = window.location.href.split('?')[0].replace('index.html','') + 'admin.html?code=' + _dreamSessionCode;
+  var title = '新解梦订单 - ' + (_dreamDescription.substring(0,20) || '匿名');
+  var desp = '【新周公解梦订单通知】\n'
+    + '梦境摘要：' + _dreamDescription.substring(0,50) + '\n'
+    + '醒后感觉：' + _dreamFeeling + '\n'
+    + '会话编号：' + _dreamSessionCode + '\n---\n'
+    + '点此解锁完整解读（复制链接到浏览器打开）：\n' + adminUrl;
+
+  try { sbUpdate('fortune_sessions', 'session_code', _dreamSessionCode, {status: 'paid'}); } catch(_) {}
+  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
+  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: formData
+  }).catch(function(e){ console.warn('通知发送:', e.message); });
+}
+
+function startDreamPolling(code) {
+  if (_dreamPollTimer) { clearInterval(_dreamPollTimer); }
+  _dreamPollTimer = setInterval(function(){
+    sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+      .then(function(r){ return r.json(); })
+      .then(function(rows){
+        if (rows && rows.length > 0 && rows[0].status === 'unlocked') {
+          clearInterval(_dreamPollTimer);
+          _dreamPollTimer = null;
+          onDreamUnlocked();
+        }
+      }).catch(function(){});
+  }, 5000);
+}
+
+function onDreamUnlocked() {
+  document.getElementById('dreamUnlockWaiting').classList.add('hidden');
+  document.getElementById('dreamUnlockDone').classList.remove('hidden');
+  document.getElementById('dreamPaywallError').textContent = '';
+  document.getElementById('dreamPaywallCard').style.display = 'none';
+  document.getElementById('dreamFullResults').classList.remove('hidden');
+  document.getElementById('dreamFullResults').scrollIntoView({behavior:'smooth'});
+  // 渲染梦境分析
+  renderDreamAnalysis();
+  // AI解读
+  setTimeout(generateDreamAIReading, 500);
+}
+
+function renderDreamAnalysis() {
+  var area = document.getElementById('dreamAnalysis');
+  var html = '<div style="margin-bottom:12px;">';
+  html += '<div style="color:var(--gold);font-size:0.85em;">【梦境描述】</div>';
+  html += '<div style="margin:4px 0 12px;color:var(--text-light);font-size:0.9em;">' + esc(_dreamDescription) + '</div>';
+  html += '<div style="color:var(--gold);font-size:0.85em;">【醒后感觉】</div>';
+  html += '<div style="margin:4px 0 12px;color:var(--text-light);font-size:0.9em;">' + _dreamFeeling + '</div>';
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function resetDream() {
+  _dreamSessionCode = '';
+  _dreamDescription = '';
+  _dreamFeeling = '';
+  if (_dreamPollTimer) { clearInterval(_dreamPollTimer); _dreamPollTimer = null; }
+  document.getElementById('dreamResultArea').classList.add('hidden');
+  document.getElementById('dreamGuidance').classList.remove('hidden');
+  document.getElementById('dreamFullResults').classList.add('hidden');
+  document.getElementById('dreamPaywallCard').style.display = '';
+  document.getElementById('dreamPaywallPaidSection').classList.remove('hidden');
+  document.getElementById('dreamUnlockWaiting').classList.add('hidden');
+  document.getElementById('dreamUnlockDone').classList.add('hidden');
+  document.getElementById('dreamAiCard').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('dreamInput').value = '';
+}
+
+function generateDreamAIReading() {
+  document.getElementById('dreamAiCard').style.display = '';
+  document.getElementById('dreamAiStatus').textContent = '⏳ 正在生成梦境解读...';
+  var code = _dreamSessionCode;
+  if (!code) { callDreamDeepSeek(); return; }
+  sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      if (rows && rows.length > 0 && rows[0].teaser && rows[0].teaser.ai) {
+        document.getElementById('dreamAiContent').innerHTML = rows[0].teaser.ai;
+        document.getElementById('dreamAiStatus').textContent = '✅ 解读完成';
+      } else { callDreamDeepSeek(code); }
+    }).catch(function(){ callDreamDeepSeek(code); });
+}
+
+function callDreamDeepSeek(sessionCode) {
+  var prompt = '你是一位精通传统解梦和现代心理学的解梦师。请根据以下梦境信息为用户解读。\n\n'
+    + '【梦境描述】' + _dreamDescription + '\n'
+    + '【醒后感觉】' + _dreamFeeling + '\n\n'
+    + '请从以下方面解读（300-500字）：\n'
+    + '1. 【梦象解析】解析梦境中的核心意象和象征\n'
+    + '2. 【传统寓意】中国传统解梦角度的解释\n'
+    + '3. 【心理映射】梦境反映的心理状态和潜意识\n'
+    + '4. 【现实指引】对用户现实生活的启示和建议\n\n'
+    + '要求：语言温暖有深度，不要过度迷信，结合心理学和传统文化双重角度。';
+
+  fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer ' + DEEPSEEK_KEY},
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {role:'system',content:'你是一位精通传统解梦和现代心理学的资深解梦师，用温暖专业的语言为用户解读梦境。'},
+        {role:'user',content:prompt}
+      ],
+      max_tokens: 2048, temperature: 0.3
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(result){
+    if (result && result.choices && result.choices[0]) {
+      var text = result.choices[0].message.content;
+      if (sessionCode) {
+        sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode))
+          .then(function(r){ return r.json(); })
+          .then(function(rows){
+            if (rows && rows.length > 0) {
+              var existing = rows[0].teaser || {};
+              existing.ai = text;
+              sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode), {
+                method:'PATCH', body:JSON.stringify({teaser:existing}),
+                headers:{'Prefer':'return=minimal'}
+              }).catch(function(){});
+            }
+          }).catch(function(){});
+      }
+      text = text.replace(/\n\n/g, '</p><p style="margin-bottom:14px;">');
+      text = '<p style="margin-bottom:14px;">' + text + '</p>';
+      document.getElementById('dreamAiContent').innerHTML = text;
+      document.getElementById('dreamAiStatus').textContent = '✅ 解读完成';
+    } else {
+      document.getElementById('dreamAiStatus').textContent = '⚠ 解读暂不可用，请重试';
+    }
+  })
+  .catch(function(err){
+    document.getElementById('dreamAiStatus').textContent = '⚠ 解读加载失败，请刷新重试';
+    console.warn('解梦解读失败:', err);
+  });
+}
+
+// ═══════════════ 姓名测字 ═══════════════
+
+// 常用汉字笔画字典（300+字）
+var STROKE_DICT = {
+  '一':1,'二':2,'三':3,'四':5,'五':4,'六':4,'七':2,'八':2,'九':2,'十':2,
+  '百':6,'千':3,'万':3,'亿':3,'王':4,'天':4,'大':3,'小':3,'上':3,'下':3,
+  '中':4,'国':8,'人':2,'民':5,'年':6,'月':4,'日':4,'时':7,'分':4,'秒':7,
+  '子':3,'丑':4,'寅':11,'卯':5,'辰':7,'巳':3,'午':4,'未':5,'申':5,'酉':7,
+  '戌':6,'亥':6,'甲':5,'乙':1,'丙':5,'丁':2,'戊':5,'己':3,'庚':8,'辛':7,
+  '壬':4,'癸':9,'金':8,'木':4,'水':4,'火':4,'土':3,'风':9,'雷':13,'电':5,
+  '山':3,'石':5,'田':5,'土':3,'川':3,'林':8,'森':12,'江':6,'河':8,'海':10,
+  '湖':12,'洋':9,'云':4,'雨':8,'雪':11,'冰':6,'光':6,'明':8,'暗':13,'星':9,
+  '月':4,'日':4,'花':7,'草':9,'叶':5,'树':9,'果':8,'根':10,'枝':8,'松':8,
+  '竹':6,'梅':11,'兰':5,'菊':11,'荷':10,'莲':10,'桃':10,'李':7,'杏':7,'柳':9,
+  '张':7,'王':4,'李':7,'刘':6,'陈':7,'杨':7,'赵':9,'黄':11,'周':8,'吴':7,
+  '徐':10,'孙':6,'马':3,'胡':9,'朱':6,'郭':10,'何':7,'林':8,'罗':8,'高':10,
+  '梁':11,'宋':7,'郑':8,'谢':12,'韩':12,'唐':10,'冯':5,'于':3,'董':12,'萧':11,
+  '程':12,'曹':11,'袁':10,'邓':4,'许':6,'傅':12,'沈':7,'曾':12,'彭':12,'吕':6,
+  '苏':7,'卢':5,'蒋':12,'蔡':14,'贾':13,'丁':2,'魏':17,'薛':16,'阎':16,'余':7,
+  '潘':15,'杜':7,'戴':17,'夏':10,'钟':9,'汪':7,'田':5,'任':6,'姜':9,'范':8,
+  '方':4,'石':5,'姚':9,'谭':14,'廖':14,'邹':12,'熊':14,'陆':7,'孔':4,'白':5,
+  '崔':11,'康':11,'毛':4,'邱':7,'秦':10,'江':6,'史':5,'顾':10,'侯':9,'邵':7,
+  '孟':8,'龙':5,'万':3,'段':9,'曹':11,'钱':10,'汤':6,'尹':4,'黎':15,'易':8,
+  '常':11,'武':8,'乔':12,'文':4,'梁':11,'宋':7,'郑':8,'谢':12,'冯':5,'楚':13,
+  '卫':3,'沈':7,'韩':12,'杨':7,'秦':10,'许':6,'何':7,'吕':6,'施':9,'张':7,
+  '孔':4,'曹':11,'严':7,'华':6,'金':8,'魏':17,'陶':10,'姜':9,'戚':11,'谢':12,
+  '邹':12,'喻':12,'柏':9,'水':4,'窦':13,'章':11,'苏':7,'潘':15,'葛':12,'范':8,
+  '彭':12,'鲁':12,'马':3,'方':4,'任':6,'姚':9,'谭':14,'廖':14,'邹':12,'熊':14,
+  '陆':7,'孔':4,'白':5,'崔':11,'康':11,'毛':4,'邱':7,'秦':10,'江':6,'史':5,
+  '顾':10,'侯':9,'邵':7,'孟':8,'龙':5,'万':3,'段':9,'钱':10,'汤':6,'尹':4,
+  '黎':15,'易':8,'常':11,'武':8,'乔':12,'文':4,'楚':13,'卫':3,'沈':7,'韩':12,
+  '陶':10,'姜':9,'戚':11,'柏':9,'水':4,'窦':13,'章':11,'苏':7,'潘':15,'葛':12,
+  '彭':12,'鲁':12,'韦':9,'昌':8,'俞':9,'袁':10,'阮':6,'卓':8,'唐':10,'岑':7,
+  '费':9,'廉':13,'薛':16,'雷':13,'贺':9,'倪':10,'汤':6,'滕':15,'殷':10,'罗':8,
+  '毕':6,'郝':9,'邬':7,'安':6,'常':11,'乐':5,'于':3,'时':7,'傅':12,'平':5,
+  '康':11,'伍':6,'余':7,'元':4,'卜':2,'顾':10,'孟':8,'黄':12,'和':8,'穆':16,
+  '萧':11,'尹':4,'姚':9,'汪':7,'毛':4,'宋':7,'庞':8,'熊':14,'纪':6,'屈':8,
+  '项':12,'祝':9,'董':12,'梁':11,'杜':7,'阮':6,'蓝':13,'闵':12,'季':8,'强':12,
+  '贾':13,'路':13,'娄':9,'危':6,'甘':5,'景':12,'薄':16,'童':12,'仲':6,'仰':6,
+  '冷':7,'辛':7,'那':6,'东':5,'欧':8,'安':6,'易':8,'包':5,'左':5,'右':5,
+  '前':9,'后':6,'内':4,'外':5,'今':4,'古':5,'学':8,'文':4,'武':8,'信':9,
+  '义':3,'礼':5,'智':12,'仁':4,'德':15,'善':12,'美':9,'丽':7,'和':8,'平':5,
+  '如':6,'意':13,'志':7,'诚':8,'勤':13,'俭':9,'勇':9,'毅':15,'轩':7,'然':12,
+  '博':12,'雅':12,'倩':10,'婷':12,'娜':9,'静':14,'慧':15,'敏':11,'杰':8,'豪':14,
+  '龙':5,'凤':4,'鹏':13,'飞':3,'翔':12,'宇':6,'宙':8,'洪':9,'浩':10,'强':12,
+  '伟':6,'健':10,'康':11,'宁':14,'安':6,'平':5,'顺':9,'达':6,'丰':4,'盛':11,
+  '宝':8,'玉':5,'珠':10,'珍':9,'瑞':13,'祥':10,'福':13,'禄':12,'寿':7,'喜':12,
+  '乐':5,'欢':6,'庆':6,'荣':9,'华':6,'富':12,'贵':9,'海':10,'天':4,'地':6,
+  '人':2,'春':9,'夏':10,'秋':9,'冬':5,'东':5,'南':9,'西':6,'北':5,'中':4,
+  '世':5,'界':9,'永':5,'远':7,'长':8,'久':3,'远':7,'心':4,'想':13,'事':8,
+  '成':7,'家':10,'国':8,'明':8,'天':4,'空':8,'白':5,'青':8,'红':6,'紫':12,
+  '绿':11,'蓝':13,'婷':12,'娜':9,'颖':13,'睿':14,'珺':11,'瑶':14,'琳':12,'琪':12,
+  '璇':15,'媛':12,'彤':7,'芸':7,'菲':11,'萌':11,'茜':9,'滢':13,'溪':13,'涵':11,
+  '泽':8,'润':10,'清':11,'林':8,'柯':9,'松':8,'柏':9,'杭':8,'若':8,'芷':10,
+  '芯':7,'芯':7,'钰':10,'彤':7,'璟':16,'瑾':15,'梓':11,'濠':17,'锋':12,'锐':12,
+  '信':9,'好':6,'亚':8,'可':5,'爱':10,'佳':8,'聪':15,'颖':13,'帅':5,'丽':7,
+  '美':9,'欣':8,'悦':10,'怡':8,'乐':5,'思':9,'琪':12,'凡':3,'晋':10,'帆':6,
+  '昊':8,'晟':11,'昱':9,'曦':20,'曜':18,'坤':8,'宇':6,'宙':8,'宸':10,'祺':12,
+  '祎':8,'禛':14,'铭':14,'锦':16,'钧':12,'钢':12,'铁':10,'锋':12,'锐':12,
+  '鑫':24,'森':12,'磊':15,'晶':12,'品':9,'众':12,'吕':6,'从':11,'双':4,'多':6,
+  '朋':8,'友':4,'心':4,'彤':7,'惠':12,'爱':10,'淋':11,'洁':9,'纯':10,'真':10,
+  '实':8,'在':6,'坚':7,'持':9,'守':6,'正':5,'毅':15,'恒':10,'永':5,'远':7
+};
+
+// 81数理吉凶表
+var LUCK81 = [
+  {num:1,luck:'大吉',meaning:'天地开泰，万物发展，名利双收'},
+  {num:2,luck:'大凶',meaning:'混沌未定，动摇不安，难望成功'},
+  {num:3,luck:'大吉',meaning:'进取如意，福禄寿全，百事亨通'},
+  {num:4,luck:'大凶',meaning:'破败之数，劳苦多灾，家道衰微'},
+  {num:5,luck:'大吉',meaning:'福禄双全，门庭昌盛，富贵隆昌'},
+  {num:6,luck:'大吉',meaning:'安稳余庆，安享福禄，吉祥如意'},
+  {num:7,luck:'大吉',meaning:'精力旺盛，刚毅果断，大业成就'},
+  {num:8,luck:'大吉',meaning:'意志坚定，努力发展，百事发达'},
+  {num:9,luck:'大凶',meaning:'贫苦逆难，短寿破财，暗藏凶险'},
+  {num:10,luck:'大凶',meaning:'万业终曲，劳心费力，万事终局'},
+  {num:11,luck:'大吉',meaning:'万物更新，稳健踏实，繁荣富贵'},
+  {num:12,luck:'大凶',meaning:'意志薄弱，计划难行，孤独无助'},
+  {num:13,luck:'大吉',meaning:'天赋才华，百事如意，智谋超群'},
+  {num:14,luck:'大凶',meaning:'忍得苦难，必有后福，事与愿违'},
+  {num:15,luck:'大吉',meaning:'谦恭做事，敬得人和，福寿双全'},
+  {num:16,luck:'大吉',meaning:'能获众望，成就大业，名利双收'},
+  {num:17,luck:'半吉',meaning:'排除万难，有贵人助，把握时机'},
+  {num:18,luck:'大吉',meaning:'经商做事，顺利昌隆，百事亨通'},
+  {num:19,luck:'大凶',meaning:'虽成功早，需防空虚，外悲内苦'},
+  {num:20,luck:'大凶',meaning:'困难重重，颠沛不安，一生悲苦'},
+  {num:21,luck:'大吉',meaning:'春来花开，独立权威，名利双收'},
+  {num:22,luck:'大凶',meaning:'秋草逢霜，才能难展，事不如意'},
+  {num:23,luck:'大吉',meaning:'旭日升天，名显四方，终成大业'},
+  {num:24,luck:'大吉',meaning:'锦绣前程，贵人扶持，财源广进'},
+  {num:25,luck:'大吉',meaning:'天时地利，只欠人和，努力可成'},
+  {num:26,luck:'半凶',meaning:'一生波折，困难重重，大功可成'},
+  {num:27,luck:'半吉',meaning:'一成一败，一盛一衰，谨慎可成'},
+  {num:28,luck:'大凶',meaning:'鱼临旱地，难逃厄运，大凶之数'},
+  {num:29,luck:'大吉',meaning:'青云直上，才能奏功，才略奏功'},
+  {num:30,luck:'半凶',family:'吉凶参半',meaning:'浮沉不定，喜忧参半，需防凶险'},
+  {num:31,luck:'大吉',meaning:'智勇兼备，可成大事，名利丰收'},
+  {num:32,luck:'大吉',meaning:'幸运之神，贵人相助，财源丰茂'},
+  {num:33,luck:'大吉',meaning:'家门昌盛，飞黄腾达，功成名就'},
+  {num:34,luck:'大凶',meaning:'破家之数，短命破财，万事难成'},
+  {num:35,luck:'大吉',meaning:'温和平静，理智稳健，事业顺利'},
+  {num:36,luck:'半凶',family:'吉凶参半',meaning:'波澜重叠，沉浮不定，需守己安'},
+  {num:37,luck:'大吉',meaning:'逢凶化吉，万事如意，财运亨通'},
+  {num:38,luck:'半吉',meaning:'虽有大志，事多磨折，脚踏实地可成'},
+  {num:39,luck:'大吉',meaning:'云开见月，富贵荣华，光明坦途'},
+  {num:40,luck:'半凶',family:'吉凶参半',meaning:'谨慎做事，虽有风险，转危为安'},
+  {num:41,luck:'大吉',meaning:'德望高重，事事如意，富寿荣华'},
+  {num:42,luck:'半吉',meaning:'专心一意，专心努力，终有成就'},
+  {num:43,luck:'大凶',meaning:'雨夜临花，外祥内苦，忍耐自重'},
+  {num:44,luck:'大凶',meaning:'心迷意乱，事难顺遂，破家之数'},
+  {num:45,luck:'大吉',meaning:'顺风扬帆，万事如意，大业成就'},
+  {num:46,luck:'大凶',meaning:'坎坷不平，艰难重重，须防大难'},
+  {num:47,luck:'大吉',meaning:'有贵人助，可成大业，万事顺遂'},
+  {num:48,luck:'大吉',meaning:'德泽深厚，才华横溢，名利双收'},
+  {num:49,luck:'半吉',meaning:'吉凶难分，贵贱不一，谨慎可成'},
+  {num:50,luck:'半凶',family:'吉凶参半',meaning:'一盛一衰，浮沉不常，小心为上'},
+  {num:51,luck:'半吉',meaning:'顺逆参半，盛衰交加，诸事难圆'},
+  {num:52,luck:'大吉',meaning:'达眼识见，功名有望，名利双收'},
+  {num:53,luck:'半凶',family:'吉凶参半',meaning:'盛衰交加，先吉后凶，谨慎行事'},
+  {num:54,luck:'大凶',meaning:'虽倾全力，功败垂成，多灾多难'},
+  {num:55,luck:'半吉',meaning:'外祥内苦，诸事不顺，谨慎可成'},
+  {num:56,luck:'大凶',meaning:'事与愿违，终难成功，浪里行舟'},
+  {num:57,luck:'大吉',meaning:'寒雪青松，春来花开，百事如意'},
+  {num:58,luck:'半凶',family:'吉凶参半',meaning:'浮沉不定，先苦后甜，晚景可期'},
+  {num:59,luck:'大凶',meaning:'遇事犹疑，难望成事，前途迷茫'},
+  {num:60,luck:'大凶',meaning:'黑暗无光，心迷意乱，难望平安'},
+  {num:61,luck:'大吉',meaning:'牡丹富贵，名利双收，花开富贵'},
+  {num:62,luck:'大凶',meaning:'身弱心弱，诸事难成，百事徒劳'},
+  {num:63,luck:'大吉',meaning:'富贵荣华，万事如意，雨后天晴'},
+  {num:64,luck:'大凶',meaning:'骨肉分离，孤独悲苦，百事难成'},
+  {num:65,luck:'大吉',meaning:'天长地久，家运隆昌，福寿绵长'},
+  {num:66,luck:'大凶',meaning:'黑夜漫长，进退维谷，内外不和'},
+  {num:67,luck:'大吉',meaning:'利路亨通，功名成就，百事顺遂'},
+  {num:68,luck:'大吉',meaning:'思虑周详，计划周密，集思广益'},
+  {num:69,luck:'大凶',meaning:'坐立不安，进退两难，一生困苦'},
+  {num:70,luck:'大凶',meaning:'家运衰退，晚景凄凉，漂泊不定'},
+  {num:71,luck:'半凶',family:'吉凶参半',meaning:'吉凶参半，艰难曲折，忍耐可成'},
+  {num:72,luck:'半凶',family:'吉凶参半',meaning:'阴云蔽月，夜职禄悦，须防凶灾'},
+  {num:73,luck:'半吉',meaning:'安乐自来，顺时而动，自然吉祥'},
+  {num:74,luck:'大凶',meaning:'残花经霜，秋叶落零，难望成功'},
+  {num:75,luck:'半凶',family:'吉凶参半',meaning:'退守安全，急流勇退，可保平安'},
+  {num:76,luck:'大凶',meaning:'倾覆离散，骨肉分离，内外不和'},
+  {num:77,luck:'半吉',meaning:'先苦后甜，先甘后苦，万事难全'},
+  {num:78,luck:'半吉',meaning:'福禄虽来，晚景可期，需防晚悲'},
+  {num:79,luck:'大凶',meaning:'云遮望月，身疲力尽，前途无光'},
+  {num:80,luck:'半凶',family:'吉凶参半',meaning:'吉凶参半，得而复失，不如守旧'},
+  {num:81,luck:'大吉',meaning:'还本归元，万物复位，最极之数'}
+];
+
+function getStroke(char) {
+  if (STROKE_DICT[char] !== undefined) return STROKE_DICT[char];
+  return 8; // 默认8画
+}
+
+function getLuckInfo(num) {
+  var n = num;
+  while (n > 81) n -= 81;
+  if (n < 1) n = 1;
+  for (var i = 0; i < LUCK81.length; i++) {
+    if (LUCK81[i].num === n) return LUCK81[i];
+  }
+  return {num:n, luck:'吉', meaning:'平凡之数，努力可成'};
+}
+
+function getElement(num) {
+  var tail = num % 10;
+  if (tail === 1 || tail === 2) return '木';
+  if (tail === 3 || tail === 4) return '火';
+  if (tail === 5 || tail === 6) return '土';
+  if (tail === 7 || tail === 8) return '金';
+  return '水';
+}
+
+var _wordSessionCode = '';
+var _wordLastName = '';
+var _wordFirstName = '';
+var _wordGender = '';
+var _wordGridData = {};
+var _wordPollTimer = null;
+
+function submitWord() {
+  var lastName = document.getElementById('wordLastName').value.trim();
+  var firstName = document.getElementById('wordFirstName').value.trim();
+  var gender = document.getElementById('wordGender').value;
+  if (!lastName || !firstName) {
+    alert('请输入完整的姓名');
+    return;
+  }
+
+  _wordLastName = lastName;
+  _wordFirstName = firstName;
+  _wordGender = gender;
+
+  // 计算五格
+  var fullName = lastName + firstName;
+  var strokes = [];
+  for (var i = 0; i < fullName.length; i++) strokes.push(getStroke(fullName[i]));
+
+  var lastNameStroke = 0;
+  for (var i = 0; i < lastName.length; i++) lastNameStroke += strokes[i];
+
+  var firstNameStrokes = [];
+  for (var i = lastName.length; i < strokes.length; i++) firstNameStrokes.push(strokes[i]);
+
+  var firstNameStroke1 = firstNameStrokes.length > 0 ? firstNameStrokes[0] : 0;
+  var firstNameStroke2 = firstNameStrokes.length > 1 ? firstNameStrokes[1] : 0;
+
+  var totalStroke = strokes.reduce(function(a,b){return a+b;}, 0);
+
+  var tianGe = lastNameStroke + 1;
+  var renGe = lastNameStroke + firstNameStroke1;
+  var diGe = firstNameStroke2 > 0 ? firstNameStroke1 + firstNameStroke2 : firstNameStroke1 + 1;
+  var zongGe = totalStroke;
+  var waiGe = (lastName.length > 1 ? strokes[lastName.length-1] : lastNameStroke) + (firstNameStroke2 > 0 ? firstNameStrokes[firstNameStrokes.length-1] : firstNameStroke1) - (lastName.length > 1 ? 0 : 0);
+
+  // 单姓的外格计算修正
+  waiGe = zongGe - renGe + (lastName.length > 1 ? 0 : 1);
+
+  var data = {
+    tianGe: tianGe, tianGeLuck: getLuckInfo(tianGe),
+    renGe: renGe, renGeLuck: getLuckInfo(renGe),
+    diGe: diGe, diGeLuck: getLuckInfo(diGe),
+    zongGe: zongGe, zongGeLuck: getLuckInfo(zongGe),
+    waiGe: waiGe, waiGeLuck: getLuckInfo(waiGe),
+    element: getElement(zongGe),
+    totalStroke: totalStroke,
+    lastName: lastName, firstName: firstName, gender: gender
+  };
+  _wordGridData = data;
+
+  // 渲染预览
+  var previewHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:12px 0;">';
+  previewHtml += '<div style="background:#1a0d0f;border-radius:4px;padding:8px;text-align:center;"><div style="font-size:0.7em;color:var(--text-dim);">天格</div><div style="font-size:1.2em;color:var(--gold);">' + data.tianGe + '</div><div style="font-size:0.75em;color:' + (data.tianGeLuck.luck.indexOf('吉')>=0?'var(--green)':'var(--red)') + ';">' + data.tianGeLuck.luck + '</div></div>';
+  previewHtml += '<div style="background:#1a0d0f;border-radius:4px;padding:8px;text-align:center;"><div style="font-size:0.7em;color:var(--text-dim);">人格</div><div style="font-size:1.2em;color:var(--gold);">' + data.renGe + '</div><div style="font-size:0.75em;color:' + (data.renGeLuck.luck.indexOf('吉')>=0?'var(--green)':'var(--red)') + ';">' + data.renGeLuck.luck + '</div></div>';
+  previewHtml += '<div style="background:#1a0d0f;border-radius:4px;padding:8px;text-align:center;"><div style="font-size:0.7em;color:var(--text-dim);">地格</div><div style="font-size:1.2em;color:var(--gold);">' + data.diGe + '</div><div style="font-size:0.75em;color:' + (data.diGeLuck.luck.indexOf('吉')>=0?'var(--green)':'var(--red)') + ';">' + data.diGeLuck.luck + '</div></div>';
+  previewHtml += '<div style="background:#1a0d0f;border-radius:4px;padding:8px;text-align:center;"><div style="font-size:0.7em;color:var(--text-dim);">总格</div><div style="font-size:1.2em;color:var(--gold);">' + data.zongGe + '</div><div style="font-size:0.75em;color:' + (data.zongGeLuck.luck.indexOf('吉')>=0?'var(--green)':'var(--red)') + ';">' + data.zongGeLuck.luck + '</div></div>';
+  previewHtml += '<div style="background:#1a0d0f;border-radius:4px;padding:8px;text-align:center;"><div style="font-size:0.7em;color:var(--text-dim);">外格</div><div style="font-size:1.2em;color:var(--gold);">' + data.waiGe + '</div><div style="font-size:0.75em;color:' + (data.waiGeLuck.luck.indexOf('吉')>=0?'var(--green)':'var(--red)') + ';">' + data.waiGeLuck.luck + '</div></div>';
+  previewHtml += '<div style="background:#1a0d0f;border-radius:4px;padding:8px;text-align:center;"><div style="font-size:0.7em;color:var(--text-dim);">五行</div><div style="font-size:1.2em;color:var(--gold);">' + data.element + '</div><div style="font-size:0.75em;color:var(--text-dim);">' + (data.zongGe % 81) + '数</div></div>';
+  previewHtml += '</div>';
+  document.getElementById('wordGridPreview').innerHTML = previewHtml;
+
+  // 设置Teaser
+  var luckNames = [data.tianGeLuck.luck, data.renGeLuck.luck, data.diGeLuck.luck, data.zongGeLuck.luck, data.waiGeLuck.luck];
+  var goodCount = luckNames.filter(function(l){return l.indexOf('吉')>=0;}).length;
+  var rating = goodCount >= 4 ? '上吉' : (goodCount >= 3 ? '中吉' : (goodCount >= 2 ? '平' : '凶'));
+  document.getElementById('wordTeaserLine').textContent = lastName + firstName + ' · 总格' + data.zongGe + data.element + ' · ' + rating;
+  document.getElementById('wordTeaserSub').textContent = '天格' + data.tianGe + '(' + data.tianGeLuck.luck + ') 人格' + data.renGe + '(' + data.renGeLuck.luck + ') 地格' + data.diGe + '(' + data.diGeLuck.luck + ')';
+
+  // 生成会话编号
+  _wordSessionCode = genWordSessionCode();
+  document.getElementById('wordSessionCodeDisplay').textContent = _wordSessionCode;
+  document.getElementById('wordPaidSessionCode').textContent = _wordSessionCode;
+
+  // 切换视图
+  document.getElementById('wordGuidance').classList.add('hidden');
+  document.getElementById('wordResultArea').classList.remove('hidden');
+  document.getElementById('wordPreviewCard').style.display = '';
+  document.getElementById('wordPaywallCard').style.display = '';
+  document.getElementById('wordPaywallPaidSection').classList.remove('hidden');
+  document.getElementById('wordUnlockWaiting').classList.add('hidden');
+  document.getElementById('wordUnlockDone').classList.add('hidden');
+  document.getElementById('wordFullResults').classList.add('hidden');
+  document.getElementById('wordAiCard').style.display = 'none';
+
+  // 写入Supabase
+  var teaserData = {dm: lastName+firstName, pattern: data.zongGe + data.element, fav: rating};
+  var wordData = {lastName:lastName, firstName:firstName, gender:gender, strokes:strokes, grids:data};
+  postSession(_wordSessionCode, lastName+firstName, wordData, teaserData);
+  document.getElementById('wordResultArea').scrollIntoView({behavior:'smooth'});
+}
+
+function genWordSessionCode() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code = '';
+  for (var i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return 'W' + code;
+}
+
+function wordNotifyPaid() {
+  var status = document.getElementById('wordPaidStatus');
+  if (!_wordSessionCode) { status.textContent = '⚠ 请先测名'; status.style.color = '#c0392b'; return; }
+  document.getElementById('wordPaywallPaidSection').classList.add('hidden');
+  document.getElementById('wordUnlockWaiting').classList.remove('hidden');
+
+  var adminUrl = window.location.href.split('?')[0].replace('index.html','') + 'admin.html?code=' + _wordSessionCode;
+  var title = '新测名订单 - ' + (_wordLastName + _wordFirstName);
+  var desp = '【新姓名测字订单通知】\n'
+    + '姓名：' + _wordLastName + _wordFirstName + '\n'
+    + '性别：' + (_wordGender==='male'?'男':'女') + '\n'
+    + '总格数理：' + _wordGridData.zongGe + '\n'
+    + '会话编号：' + _wordSessionCode + '\n---\n'
+    + '点此解锁完整分析（复制链接到浏览器打开）：\n' + adminUrl;
+
+  try { sbUpdate('fortune_sessions', 'session_code', _wordSessionCode, {status: 'paid'}); } catch(_) {}
+  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
+  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: formData
+  }).catch(function(e){ console.warn('通知发送:', e.message); });
+}
+
+function startWordPolling(code) {
+  if (_wordPollTimer) { clearInterval(_wordPollTimer); }
+  _wordPollTimer = setInterval(function(){
+    sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+      .then(function(r){ return r.json(); })
+      .then(function(rows){
+        if (rows && rows.length > 0 && rows[0].status === 'unlocked') {
+          clearInterval(_wordPollTimer);
+          _wordPollTimer = null;
+          onWordUnlocked();
+        }
+      }).catch(function(){});
+  }, 5000);
+}
+
+function onWordUnlocked() {
+  document.getElementById('wordUnlockWaiting').classList.add('hidden');
+  document.getElementById('wordUnlockDone').classList.remove('hidden');
+  document.getElementById('wordPaywallError').textContent = '';
+  document.getElementById('wordPaywallCard').style.display = 'none';
+  document.getElementById('wordFullResults').classList.remove('hidden');
+  document.getElementById('wordFullResults').scrollIntoView({behavior:'smooth'});
+  renderWordGridDetail();
+  setTimeout(generateWordAIReading, 500);
+}
+
+function renderWordGridDetail() {
+  var d = _wordGridData;
+  var area = document.getElementById('wordGridDetail');
+  var luckColor = function(l) { return l.indexOf('吉')>=0 ? 'var(--green)' : (l.indexOf('凶')>=0 ? 'var(--red)' : 'var(--gold)'); };
+  var elementColor = function(e) {
+    var map = {木:'var(--wood)',火:'var(--fire)',土:'var(--earth)',金:'var(--metal)',水:'var(--water)'};
+    return map[e] || 'var(--text-dim)';
+  };
+
+  var html = '<div style="margin:12px 0;">';
+  html += '<div style="text-align:center;font-size:1.5em;color:var(--gold-light);margin-bottom:16px;">' + esc(d.lastName) + esc(d.firstName) + '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+
+  html += '<div style="background:#1a0d0f;border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:0.75em;color:var(--text-dim);">天格（先祖运）</div><div style="font-size:1.5em;color:var(--gold-light);margin:4px 0;">' + d.tianGe + '</div><div style="font-size:0.8em;color:' + luckColor(d.tianGeLuck.luck) + ';">' + d.tianGeLuck.luck + '</div><div style="font-size:0.7em;color:var(--text-dim);margin-top:4px;">' + d.tianGeLuck.meaning + '</div></div>';
+
+  html += '<div style="background:#1a0d0f;border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:0.75em;color:var(--text-dim);">人格（主运）</div><div style="font-size:1.5em;color:var(--gold-light);margin:4px 0;">' + d.renGe + '</div><div style="font-size:0.8em;color:' + luckColor(d.renGeLuck.luck) + ';">' + d.renGeLuck.luck + '</div><div style="font-size:0.7em;color:var(--text-dim);margin-top:4px;">' + d.renGeLuck.meaning + '</div></div>';
+
+  html += '<div style="background:#1a0d0f;border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:0.75em;color:var(--text-dim);">地格（前运）</div><div style="font-size:1.5em;color:var(--gold-light);margin:4px 0;">' + d.diGe + '</div><div style="font-size:0.8em;color:' + luckColor(d.diGeLuck.luck) + ';">' + d.diGeLuck.luck + '</div><div style="font-size:0.7em;color:var(--text-dim);margin-top:4px;">' + d.diGeLuck.meaning + '</div></div>';
+
+  html += '<div style="background:#1a0d0f;border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:0.75em;color:var(--text-dim);">总格（后运）</div><div style="font-size:1.5em;color:var(--gold-light);margin:4px 0;">' + d.zongGe + '</div><div style="font-size:0.8em;color:' + luckColor(d.zongGeLuck.luck) + ';">' + d.zongGeLuck.luck + '</div><div style="font-size:0.7em;color:var(--text-dim);margin-top:4px;">' + d.zongGeLuck.meaning + '</div></div>';
+
+  html += '<div style="background:#1a0d0f;border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:0.75em;color:var(--text-dim);">外格（副运）</div><div style="font-size:1.5em;color:var(--gold-light);margin:4px 0;">' + d.waiGe + '</div><div style="font-size:0.8em;color:' + luckColor(d.waiGeLuck.luck) + ';">' + d.waiGeLuck.luck + '</div><div style="font-size:0.7em;color:var(--text-dim);margin-top:4px;">' + d.waiGeLuck.meaning + '</div></div>';
+
+  html += '<div style="background:#1a0d0f;border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:0.75em;color:var(--text-dim);">总格五行</div><div style="font-size:1.5em;color:' + elementColor(d.element) + ';margin:4px 0;">' + d.element + '</div><div style="font-size:0.75em;color:var(--text-dim);margin-top:4px;">总笔画：' + d.totalStroke + '</div></div>';
+
+  html += '</div></div>';
+  area.innerHTML = html;
+}
+
+function resetWord() {
+  _wordSessionCode = '';
+  _wordGridData = {};
+  if (_wordPollTimer) { clearInterval(_wordPollTimer); _wordPollTimer = null; }
+  document.getElementById('wordResultArea').classList.add('hidden');
+  document.getElementById('wordGuidance').classList.remove('hidden');
+  document.getElementById('wordFullResults').classList.add('hidden');
+  document.getElementById('wordPaywallCard').style.display = '';
+  document.getElementById('wordPaywallPaidSection').classList.remove('hidden');
+  document.getElementById('wordUnlockWaiting').classList.add('hidden');
+  document.getElementById('wordUnlockDone').classList.add('hidden');
+  document.getElementById('wordAiCard').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function generateWordAIReading() {
+  document.getElementById('wordAiCard').style.display = '';
+  document.getElementById('wordAiStatus').textContent = '⏳ 正在生成姓名学分析...';
+  var code = _wordSessionCode;
+  if (!code) { callWordDeepSeek(); return; }
+  sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      if (rows && rows.length > 0 && rows[0].teaser && rows[0].teaser.ai) {
+        document.getElementById('wordAiContent').innerHTML = rows[0].teaser.ai;
+        document.getElementById('wordAiStatus').textContent = '✅ 分析完成';
+      } else { callWordDeepSeek(code); }
+    }).catch(function(){ callWordDeepSeek(code); });
+}
+
+function callWordDeepSeek(sessionCode) {
+  var d = _wordGridData;
+  var prompt = '你是一位精通中国传统姓名学的资深大师。请根据以下姓名信息进行分析。\n\n'
+    + '【姓名】' + d.lastName + d.firstName + '\n'
+    + '【性别】' + (d.gender==='male'?'男':'女') + '\n'
+    + '【五格数理】\n'
+    + '天格：' + d.tianGe + '（' + d.tianGeLuck.luck + '）' + d.tianGeLuck.meaning + '\n'
+    + '人格：' + d.renGe + '（' + d.renGeLuck.luck + '）' + d.renGeLuck.meaning + '\n'
+    + '地格：' + d.diGe + '（' + d.diGeLuck.luck + '）' + d.diGeLuck.meaning + '\n'
+    + '总格：' + d.zongGe + '（' + d.zongGeLuck.luck + '）' + d.zongGeLuck.meaning + '\n'
+    + '外格：' + d.waiGe + '（' + d.waiGeLuck.luck + '）' + d.waiGeLuck.meaning + '\n'
+    + '【总格五行】' + d.element + '\n\n'
+    + '请撰写一份300-500字的姓名学分析报告，内容包括：\n'
+    + '1. 【五格总论】综合分析五格数理优劣\n'
+    + '2. 【性格特质】从姓名数理看性格倾向\n'
+    + '3. 【事业财运】适合的行业和发展建议\n'
+    + '4. 【感情人际】人际关系和感情方面的特点\n'
+    + '5. 【综合建议】是否建议改名或其他建议\n\n'
+    + '要求：语言专业有温度，基于五格数理数据分析，不要过度迷信，使用中文段落分明。';
+
+  fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer ' + DEEPSEEK_KEY},
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {role:'system',content:'你是一位精通中国传统姓名学（五格数理）的资深大师，用专业而平实的语言为求测者分析姓名。'},
+        {role:'user',content:prompt}
+      ],
+      max_tokens: 2048, temperature: 0.3
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(result){
+    if (result && result.choices && result.choices[0]) {
+      var text = result.choices[0].message.content;
+      if (sessionCode) {
+        sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode))
+          .then(function(r){ return r.json(); })
+          .then(function(rows){
+            if (rows && rows.length > 0) {
+              var existing = rows[0].teaser || {};
+              existing.ai = text;
+              sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode), {
+                method:'PATCH', body:JSON.stringify({teaser:existing}),
+                headers:{'Prefer':'return=minimal'}
+              }).catch(function(){});
+            }
+          }).catch(function(){});
+      }
+      text = text.replace(/\n\n/g, '</p><p style="margin-bottom:14px;">');
+      text = '<p style="margin-bottom:14px;">' + text + '</p>';
+      document.getElementById('wordAiContent').innerHTML = text;
+      document.getElementById('wordAiStatus').textContent = '✅ 分析完成';
+    } else {
+      document.getElementById('wordAiStatus').textContent = '⚠ 分析暂不可用，请重试';
+    }
+  })
+  .catch(function(err){
+    document.getElementById('wordAiStatus').textContent = '⚠ 分析加载失败，请刷新重试';
+    console.warn('测字分析失败:', err);
+  });
+}
+
+// ═══════════════ 手机号吉凶 ═══════════════
+
+// 数字能量学分组
+var DIGITAL_ENERGY = {
+  '天医': [[13,31],[68,86],[49,94],[27,72]],
+  '延年': [[19,91],[78,87],[34,43],[26,62]],
+  '生气': [[14,41],[67,76],[39,93],[28,82]],
+  '六煞': [[16,61],[47,74],[38,83],[29,92]],
+  '五鬼': [[18,81],[79,97],[36,63],[24,42]],
+  '绝命': [[12,21],[69,96],[48,84],[37,73]],
+  '祸害': [[17,71],[89,98],[46,64],[23,32]],
+  '伏位': [[11,22],[33,44],[66,77],[88,99]]
+};
+
+var ENERGY_SCORE = {
+  '天医': 90, '延年': 85, '生气': 80, '伏位': 60,
+  '六煞': 35, '五鬼': 25, '绝命': 20, '祸害': 15
+};
+
+var ENERGY_DESC = {
+  '天医': '💰 财运亨通，正财偏财均佳',
+  '延年': '💪 事业运强，领导力出色',
+  '生气': '🤝 人缘好，贵人运旺盛',
+  '伏位': '🔋 稳定保守，积蓄能量',
+  '六煞': '💔 情感敏感，人际关系多虑',
+  '五鬼': '⚡ 思维活跃，变动不稳定',
+  '绝命': '🔥 决断力强，易有财务波动',
+  '祸害': '🗣️ 口才好但易有口舌是非'
+};
+
+function analyzePhoneEnergy(phoneStr) {
+  var groups = {};
+  var keys = Object.keys(DIGITAL_ENERGY);
+  for (var k = 0; k < keys.length; k++) groups[keys[k]] = [];
+
+  for (var i = 0; i < phoneStr.length - 1; i++) {
+    var pair = parseInt(phoneStr.substring(i, i+2));
+    for (var k = 0; k < keys.length; k++) {
+      var pairs = DIGITAL_ENERGY[keys[k]];
+      for (var p = 0; p < pairs.length; p++) {
+        if (pair === pairs[p][0] || pair === pairs[p][1]) {
+          groups[keys[k]].push(pair);
+        }
+      }
+    }
+  }
+  return groups;
+}
+
+function scorePhone(phoneStr) {
+  var groups = analyzePhoneEnergy(phoneStr);
+  var score = 50; // 基础分
+  var counts = {};
+  var keys = Object.keys(groups);
+  for (var k = 0; k < keys.length; k++) {
+    var count = groups[keys[k]].length;
+    counts[keys[k]] = count;
+    if (count > 0) {
+      score += count * (ENERGY_SCORE[keys[k]] - 50) / 5;
+    }
+  }
+  // 尾号加分
+  var tail = phoneStr.slice(-4);
+  var tailGroups = analyzePhoneEnergy(tail);
+  for (var k = 0; k < keys.length; k++) {
+    var tCount = tailGroups[keys[k]].length;
+    if (tCount > 0) {
+      score += tCount * (ENERGY_SCORE[keys[k]] - 50) / 3;
+    }
+  }
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  return score;
+}
+
+var _phoneSessionCode = '';
+var _phoneNumber = '';
+var _phoneAnalysis = {};
+var _phonePollTimer = null;
+
+function submitPhone() {
+  var phoneStr = document.getElementById('phoneInput').value.trim();
+  if (!/^\d{11}$/.test(phoneStr)) {
+    alert('请输入11位有效手机号');
+    return;
+  }
+
+  _phoneNumber = phoneStr;
+  var groups = analyzePhoneEnergy(phoneStr);
+  var score = scorePhone(phoneStr);
+  var tail = phoneStr.slice(-4);
+  var tailGroups = analyzePhoneEnergy(tail);
+
+  _phoneAnalysis = {groups: groups, score: score, tail: tail, tailGroups: tailGroups};
+
+  // 渲染预览
+  var html = '<div style="margin:12px 0;">';
+  html += '<div style="text-align:center;font-size:1.3em;color:var(--gold-light);margin-bottom:8px;letter-spacing:0.3em;font-family:monospace;">' + phoneStr.substring(0,3) + ' ' + phoneStr.substring(3,7) + ' ' + phoneStr.substring(7,11) + '</div>';
+
+  // 数字分组显示
+  html += '<div style="font-size:0.8em;color:var(--text-dim);margin-bottom:8px;">数字能量分组：</div>';
+  var keys = Object.keys(groups);
+  var hasGroup = false;
+  for (var k = 0; k < keys.length; k++) {
+    if (groups[keys[k]].length > 0) {
+      hasGroup = true;
+      html += '<div style="display:inline-block;margin:2px 4px;padding:2px 8px;border-radius:4px;font-size:0.75em;background:#1a0d0f;border:1px solid var(--border);">' + keys[k] + ' ' + groups[keys[k]].join('/') + '</div>';
+    }
+  }
+  if (!hasGroup) html += '<div style="color:var(--text-dim);font-size:0.75em;">未检出明显数字组合</div>';
+
+  html += '<div style="margin-top:10px;display:flex;gap:12px;justify-content:center;">';
+  html += '<div style="background:#1a0d0f;border-radius:6px;padding:8px 16px;text-align:center;"><div style="font-size:0.7em;color:var(--text-dim);">尾号</div><div style="font-size:1.2em;color:var(--gold);">' + tail + '</div></div>';
+  var scoreColor = score >= 70 ? 'var(--green)' : (score >= 40 ? 'var(--gold)' : 'var(--red)');
+  html += '<div style="background:#1a0d0f;border-radius:6px;padding:8px 16px;text-align:center;"><div style="font-size:0.7em;color:var(--text-dim);">综合评分</div><div style="font-size:1.2em;color:' + scoreColor + ';">' + score + '分</div></div>';
+  html += '</div></div>';
+  document.getElementById('phonePreviewContent').innerHTML = html;
+
+  // 设置Teaser
+  document.getElementById('phoneTeaserLine').textContent = '尾号' + tail + ' · 综合评分' + score + '分';
+  document.getElementById('phoneTeaserSub').textContent = score >= 70 ? '号码能量较好' : (score >= 40 ? '号码能量中等' : '号码能量较弱');
+
+  // 生成会话编号
+  _phoneSessionCode = genPhoneSessionCode();
+  document.getElementById('phoneSessionCodeDisplay').textContent = _phoneSessionCode;
+  document.getElementById('phonePaidSessionCode').textContent = _phoneSessionCode;
+
+  // 切换视图
+  document.getElementById('phoneGuidance').classList.add('hidden');
+  document.getElementById('phoneResultArea').classList.remove('hidden');
+  document.getElementById('phonePreviewCard').style.display = '';
+  document.getElementById('phonePaywallCard').style.display = '';
+  document.getElementById('phonePaywallPaidSection').classList.remove('hidden');
+  document.getElementById('phoneUnlockWaiting').classList.add('hidden');
+  document.getElementById('phoneUnlockDone').classList.add('hidden');
+  document.getElementById('phoneFullResults').classList.add('hidden');
+  document.getElementById('phoneAiCard').style.display = 'none';
+
+  // 写入Supabase
+  var teaserData = {dm: '尾号' + tail, pattern: score+'分', fav: score >= 70 ? '吉' : (score >= 40 ? '平' : '凶')};
+  var phoneData = {phone: phoneStr.substring(0,3)+'****'+phoneStr.substring(7,11), score: score};
+  postSession(_phoneSessionCode, phoneStr.substring(0,3)+'****'+phoneStr.substring(7,11), phoneData, teaserData);
+  document.getElementById('phoneResultArea').scrollIntoView({behavior:'smooth'});
+}
+
+function genPhoneSessionCode() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code = '';
+  for (var i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return 'P' + code;
+}
+
+function phoneNotifyPaid() {
+  var status = document.getElementById('phonePaidStatus');
+  if (!_phoneSessionCode) { status.textContent = '⚠ 请先分析号码'; status.style.color = '#c0392b'; return; }
+  document.getElementById('phonePaywallPaidSection').classList.add('hidden');
+  document.getElementById('phoneUnlockWaiting').classList.remove('hidden');
+
+  var adminUrl = window.location.href.split('?')[0].replace('index.html','') + 'admin.html?code=' + _phoneSessionCode;
+  var maskedPhone = _phoneNumber.substring(0,3) + '****' + _phoneNumber.substring(7,11);
+  var title = '新手机号分析订单 - ' + maskedPhone;
+  var desp = '【新手机号吉凶分析订单通知】\n'
+    + '手机号：' + maskedPhone + '\n'
+    + '综合评分：' + _phoneAnalysis.score + '分\n'
+    + '会话编号：' + _phoneSessionCode + '\n---\n'
+    + '点此解锁完整分析（复制链接到浏览器打开）：\n' + adminUrl;
+
+  try { sbUpdate('fortune_sessions', 'session_code', _phoneSessionCode, {status: 'paid'}); } catch(_) {}
+  var formData = 'title=' + encodeURIComponent(title) + '&desp=' + encodeURIComponent(desp);
+  fetch('https://sctapi.ftqq.com/' + SERVERCHAN_SENDKEY + '.send', {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: formData
+  }).catch(function(e){ console.warn('通知发送:', e.message); });
+}
+
+function startPhonePolling(code) {
+  if (_phonePollTimer) { clearInterval(_phonePollTimer); }
+  _phonePollTimer = setInterval(function(){
+    sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+      .then(function(r){ return r.json(); })
+      .then(function(rows){
+        if (rows && rows.length > 0 && rows[0].status === 'unlocked') {
+          clearInterval(_phonePollTimer);
+          _phonePollTimer = null;
+          onPhoneUnlocked();
+        }
+      }).catch(function(){});
+  }, 5000);
+}
+
+function onPhoneUnlocked() {
+  document.getElementById('phoneUnlockWaiting').classList.add('hidden');
+  document.getElementById('phoneUnlockDone').classList.remove('hidden');
+  document.getElementById('phonePaywallError').textContent = '';
+  document.getElementById('phonePaywallCard').style.display = 'none';
+  document.getElementById('phoneFullResults').classList.remove('hidden');
+  document.getElementById('phoneFullResults').scrollIntoView({behavior:'smooth'});
+  renderPhoneEnergyDetail();
+  setTimeout(generatePhoneAIReading, 500);
+}
+
+function renderPhoneEnergyDetail() {
+  var area = document.getElementById('phoneEnergyDetail');
+  var groups = _phoneAnalysis.groups;
+  var keys = Object.keys(groups);
+  var html = '<div style="margin:12px 0;">';
+
+  // 号码显示
+  var num = _phoneNumber;
+  html += '<div style="text-align:center;font-size:1.5em;color:var(--gold-light);margin-bottom:16px;letter-spacing:0.4em;font-family:monospace;">' + num.substring(0,3) + ' ' + num.substring(3,7) + ' ' + num.substring(7,11) + '</div>';
+
+  // 综合评分
+  var score = _phoneAnalysis.score;
+  var scoreColor = score >= 70 ? 'var(--green)' : (score >= 40 ? 'var(--gold)' : 'var(--red)');
+  var scoreLabel = score >= 80 ? '上吉' : (score >= 60 ? '吉' : (score >= 40 ? '平' : '凶'));
+  html += '<div style="text-align:center;margin-bottom:16px;"><div style="font-size:0.8em;color:var(--text-dim);">综合评分</div><div style="font-size:2.5em;color:' + scoreColor + ';">' + score + '<span style="font-size:0.5em;">分</span></div><div style="font-size:1em;color:' + scoreColor + ';">' + scoreLabel + '</div></div>';
+
+  // 数字能量分组详情
+  html += '<div class="section-title" style="margin-bottom:8px;">🔋 数字能量分布</div>';
+  for (var k = 0; k < keys.length; k++) {
+    var pairs = groups[keys[k]];
+    if (pairs.length > 0) {
+      var eColor = ENERGY_SCORE[keys[k]] >= 60 ? 'var(--green)' : 'var(--red)';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin:4px 0;background:#1a0d0f;border:1px solid var(--border);border-radius:4px;">';
+      html += '<div><span style="font-weight:bold;color:var(--gold-light);">' + keys[k] + '</span> <span style="color:var(--text-dim);font-size:0.8em;">' + pairs.join('/') + '</span></div>';
+      html += '<div style="text-align:right;"><div style="color:' + eColor + ';font-size:0.85em;">' + ENERGY_DESC[keys[k]] + '</div></div>';
+      html += '</div>';
+    }
+  }
+
+  // 尾号分析
+  html += '<div class="section-title" style="margin:12px 0 8px;">📌 尾号深度分析</div>';
+  html += '<div style="background:#1a0d0f;border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;">';
+  html += '<div style="font-size:2em;color:var(--gold-light);letter-spacing:0.2em;font-family:monospace;">' + _phoneAnalysis.tail + '</div>';
+  var tailGroups = _phoneAnalysis.tailGroups;
+  var tailKeys = Object.keys(tailGroups);
+  var tailDesc = [];
+  for (var k = 0; k < tailKeys.length; k++) {
+    if (tailGroups[tailKeys[k]].length > 0) {
+      tailDesc.push(tailKeys[k] + ' ' + tailGroups[tailKeys[k]].join('/'));
+    }
+  }
+  if (tailDesc.length > 0) {
+    html += '<div style="font-size:0.75em;color:var(--text-dim);margin-top:4px;">' + tailDesc.join(' · ') + '</div>';
+  }
+  html += '</div>';
+
+  // 行业适配
+  html += '<div class="section-title" style="margin:12px 0 8px;">💼 行业适配度</div>';
+  var industryAdvice = getPhoneIndustryAdvice(groups);
+  html += '<div style="background:#1a0d0f;border:1px solid var(--border);border-radius:6px;padding:12px;font-size:0.85em;line-height:1.8;">' + industryAdvice + '</div>';
+
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function getPhoneIndustryAdvice(groups) {
+  var advice = [];
+  if (groups['天医'].length > 0) advice.push('💰 天医磁场强，适合金融、投资、医疗等行业');
+  if (groups['延年'].length > 0) advice.push('💪 延年磁场强，适合管理、领导岗位、自主创业');
+  if (groups['生气'].length > 0) advice.push('🤝 生气磁场强，适合销售、公关、客服等人际行业');
+  if (groups['六煞'].length > 0) advice.push('💔 六煞磁场强，适合美容、设计、艺术等创意行业');
+  if (groups['五鬼'].length > 0) advice.push('⚡ 五鬼磁场强，适合IT、研发、策划等脑力行业');
+  if (groups['绝命'].length > 0) advice.push('🔥 绝命磁场强，适合投资、贸易、竞技类行业');
+  if (groups['祸害'].length > 0) advice.push('🗣️ 祸害磁场强，适合口才类如主持、培训、法律');
+  if (advice.length === 0) advice.push('号码未呈现显著行业倾向，适合多种行业');
+  return advice.join('<br>');
+}
+
+function resetPhone() {
+  _phoneSessionCode = '';
+  _phoneNumber = '';
+  _phoneAnalysis = {};
+  if (_phonePollTimer) { clearInterval(_phonePollTimer); _phonePollTimer = null; }
+  document.getElementById('phoneResultArea').classList.add('hidden');
+  document.getElementById('phoneGuidance').classList.remove('hidden');
+  document.getElementById('phoneFullResults').classList.add('hidden');
+  document.getElementById('phonePaywallCard').style.display = '';
+  document.getElementById('phonePaywallPaidSection').classList.remove('hidden');
+  document.getElementById('phoneUnlockWaiting').classList.add('hidden');
+  document.getElementById('phoneUnlockDone').classList.add('hidden');
+  document.getElementById('phoneAiCard').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('phoneInput').value = '';
+}
+
+function generatePhoneAIReading() {
+  document.getElementById('phoneAiCard').style.display = '';
+  document.getElementById('phoneAiStatus').textContent = '⏳ 正在生成数字能量分析...';
+  var code = _phoneSessionCode;
+  if (!code) { callPhoneDeepSeek(); return; }
+  sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(code))
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      if (rows && rows.length > 0 && rows[0].teaser && rows[0].teaser.ai) {
+        document.getElementById('phoneAiContent').innerHTML = rows[0].teaser.ai;
+        document.getElementById('phoneAiStatus').textContent = '✅ 分析完成';
+      } else { callPhoneDeepSeek(code); }
+    }).catch(function(){ callPhoneDeepSeek(code); });
+}
+
+function callPhoneDeepSeek(sessionCode) {
+  var groups = _phoneAnalysis.groups;
+  var keys = Object.keys(groups);
+  var groupStr = '';
+  for (var k = 0; k < keys.length; k++) {
+    if (groups[keys[k]].length > 0) {
+      groupStr += keys[k] + '：' + groups[keys[k]].join('/') + '（出现' + groups[keys[k]].length + '次）' + ENERGY_DESC[keys[k]] + '\n';
+    }
+  }
+
+  var prompt = '你是一位精通数字能量学的资深分析师。请根据以下手机号信息进行分析。\n\n'
+    + '【手机号】' + _phoneNumber.substring(0,3) + '****' + _phoneNumber.substring(7,11) + '\n'
+    + '【尾号】' + _phoneAnalysis.tail + '\n'
+    + '【综合评分】' + _phoneAnalysis.score + '分/100分\n'
+    + '【数字能量分布】\n' + (groupStr || '（无显著数字组合）') + '\n\n'
+    + '请撰写一份300-500字的数字能量学分析报告，内容包括：\n'
+    + '1. 【能量格局】分析号码中数字磁场的整体格局和能量分布\n'
+    + '2. 【各磁场详解】对出现的各磁场（天医、延年、生气等）进行详细解读\n'
+    + '3. 【尾号重点】对尾号数字组合进行深入分析\n'
+    + '4. 【综合建议】该号码的整体评价，是否建议保留或更换\n\n'
+    + '要求：语言专业有深度，结合数字能量学理论，不要过度迷信，使用中文段落分明。';
+
+  fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer ' + DEEPSEEK_KEY},
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {role:'system',content:'你是一位精通数字能量学的资深分析师，用专业平实的语言为用户分析手机号吉凶。'},
+        {role:'user',content:prompt}
+      ],
+      max_tokens: 2048, temperature: 0.3
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(result){
+    if (result && result.choices && result.choices[0]) {
+      var text = result.choices[0].message.content;
+      if (sessionCode) {
+        sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode))
+          .then(function(r){ return r.json(); })
+          .then(function(rows){
+            if (rows && rows.length > 0) {
+              var existing = rows[0].teaser || {};
+              existing.ai = text;
+              sbFetch('/rest/v1/fortune_sessions?session_code=eq.' + encodeURIComponent(sessionCode), {
+                method:'PATCH', body:JSON.stringify({teaser:existing}),
+                headers:{'Prefer':'return=minimal'}
+              }).catch(function(){});
+            }
+          }).catch(function(){});
+      }
+      text = text.replace(/\n\n/g, '</p><p style="margin-bottom:14px;">');
+      text = '<p style="margin-bottom:14px;">' + text + '</p>';
+      document.getElementById('phoneAiContent').innerHTML = text;
+      document.getElementById('phoneAiStatus').textContent = '✅ 分析完成';
+    } else {
+      document.getElementById('phoneAiStatus').textContent = '⚠ 分析暂不可用，请重试';
+    }
+  })
+  .catch(function(err){
+    document.getElementById('phoneAiStatus').textContent = '⚠ 分析加载失败，请刷新重试';
+    console.warn('手机号分析失败:', err);
+  });
+}
 </script>
 
 </body>
