@@ -1893,12 +1893,12 @@ function postSession(code, name, birth, teaser) {
     name: name,
     birth_json: birth,
     teaser: teaser,
+    service_type: _currentService || 'bazi',
     status: 'pending'
   }).then(function(){
     startStatusPolling(code);
   }).catch(function(e){
     console.warn('Supabase写入失败，走本地模式:', e.message);
-    // 本地模式
   });
 }
 
