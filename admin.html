@@ -258,7 +258,7 @@ document.addEventListener('click', function(){ beepOk = true; }, {once:true});
 // ── 加载订单列表 ──
 function loadSessions() {
   var filter = document.getElementById('serviceFilter').value;
-  var url = '/rest/v1/fortune_sessions?order=created_at.desc&limit=100';
+  var url = '/rest/v1/fortune_sessions?order=created_at.desc&limit=500';
   if (filter !== 'all') {
     url += '&service_type=eq.' + encodeURIComponent(filter);
   }
