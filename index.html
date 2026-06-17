@@ -737,6 +737,10 @@ function switchService(name) {
   sections.forEach(function(s){ s.classList.add('hidden'); });
   var target = document.querySelector('.service-section[data-service="' + name + '"]');
   if (target) target.classList.remove('hidden');
+  // 把当前选中的tab滚到最左边（手机上不再固定显示八字批命）
+  if (activeTab) {
+    activeTab.scrollIntoView({behavior: 'smooth', inline: 'start', block: 'nearest'});
+  }
   // 切换后自动滚回顶部
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
