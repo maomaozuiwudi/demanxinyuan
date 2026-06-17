@@ -739,10 +739,7 @@ function switchService(name) {
   if (target) target.classList.remove('hidden');
   // 把当前选中的tab滚到最左边（手机上不再固定显示八字批命）
   if (activeTab) {
-    var tabsContainer = document.getElementById('serviceTabs');
-    var containerRect = tabsContainer.getBoundingClientRect();
-    var tabRect = activeTab.getBoundingClientRect();
-    tabsContainer.scrollLeft = tabsContainer.scrollLeft + containerRect.left - tabRect.left;
+    activeTab.scrollIntoView({inline: 'start', block: 'nearest', behavior: 'instant'});
   }
   // 切换后自动滚回顶部
   window.scrollTo({top: 0, behavior: 'smooth'});
